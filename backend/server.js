@@ -28,9 +28,12 @@ const TableSchema = new mongoose.Schema({
   gameData: {
     id: String,
     name: String,
-    playingTime: String,
+    minPlayingTime: String,
+    maxPlayingTime: String,
     complexity: String,
     link: String,
+    thumbnail: String,
+    image: String,
     youtubeLink: String
   },
   isFlexible: { type: Boolean, default: false },
