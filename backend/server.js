@@ -46,6 +46,12 @@ const TableSchema = new mongoose.Schema({
   expires: '1d'
 });
 
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-GB', options).format(date);
+};
+
 const Table = mongoose.model('Table', TableSchema);
 
 // Search BGG
@@ -205,6 +211,57 @@ app.post('/api/table/:id/join', async (req, res) => {
     res.json(table);
   } else {
     res.status(400).json({ error: 'Table full or missing name' });
+  }
+});
+
+app.get('/preview/:id', async (req, res) => {
+  try {
+    const table = await Table.findById(req.params.id);
+    if (!table) {
+      return res.status(404).send('Table not found');
+    }
+
+    // If table has gameData, use that
+    const gameName = table.gameData?.name || table.gameName || "Board Game";
+
+    const formattedDate = formatDate(table.date);
+    const formattedTime = table.time;
+
+    const participants = table.participants || [];
+    const participantList = participants.length > 0
+      ? `Participants: ${participants.join(', ')}`
+      : `Organizer: ${table.organizerName}`;    
+
+    const imageUrl = table.gameData?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${gameName} • ${formattedDate} • ${formattedTime}</title>
+
+          <!-- Open Graph / WhatsApp Preview -->
+          <meta property="og:title" content="${gameName} • ${formattedDate} • ${formattedTime} • ${table.location}">
+          <meta property="og:description" content="${participantList}">
+          <meta property="og:image" content="${imageUrl}">
+          <meta property="og:url" content="https://boardgame-scheduler.netlify.app/?table=${table._id}">
+          <meta property="og:type" content="website">
+
+          <!-- Optional: Redirect to real URL -->
+          <meta http-equiv="refresh" content="0; url=https://boardgame-scheduler.netlify.app/?table=${table._id}" />
+        </head>
+        <body style="background:#f9f9f9;color:#333;font-family:sans-serif;text-align:center;padding:40px;"> 
+          <h1>Board Game Session</h1>
+          <p>Redirecting...</p>
+        </body>
+      </html>
+    `;
+
+    res.send(html);
+  } catch (err) {
+    console.error("Preview error:", err.message);
+    res.status(500).send("Error loading preview");
   }
 });
 
