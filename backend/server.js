@@ -159,7 +159,7 @@ app.post('/api/table', async (req, res) => {
     // If gameId is present, fetch full game data
     if (data.gameId) {
       try {
-        const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${id}&stats=1`);
+        const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${data.gameId}&stats=1`);
         
         const parser = new xml2js.Parser({ explicitArray: false });
         parser.parseString(response.data, (err, result) => {

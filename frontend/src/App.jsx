@@ -175,7 +175,7 @@ export default function App() {
 
   // Generate shareable link
   const getTableLink = (tableId) => {
-    return `${window.location.origin}/?table=${tableId}`;
+    return `https://boardgame-scheduler.onrender.com/preview/${tableId}`;
   };
 
   const getComplexityCategory = (complexityValue) => {
