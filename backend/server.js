@@ -69,10 +69,14 @@ app.get('/api/games', async (req, res) => {
       const games = Array.isArray(items) ? items : [items];
 
       const simplifiedGames = games.map(game => ({
-        id: game.$.id,
-        name: game.name?.['$']?.value || game.name?.[0]?.$?.value || 'Unknown',
-        yearPublished: game.yearpublished?.['$']?.value,
-        type: game.$.type
+        id: game.$.id || 'Unknown ID',
+        name: 
+          (typeof game.name === 'object' && game.name?.['$']?.value) || 
+          (Array.isArray(game.name) && game.name[0]?.['$']?.value) ||
+          'Unknown Game',
+        yearPublished: 
+          (typeof game.yearpublished === 'object' && game.yearpublished?.['$']?.value) || 
+          'N/A'
       }));
 
       res.json(simplifiedGames);

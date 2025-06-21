@@ -314,20 +314,20 @@ export default function App() {
                 
                 {/* Game suggestions dropdown */}
                 {gameSuggestions.length > 0 && (
-                  <div className="mt-2 bg-white border border-gray-200 rounded shadow-md max-h-40 overflow-y-auto z-10 absolute w-96">
+                  <ul className="mt-2 border border-gray-200 p-2 max-h-40 overflow-y-auto bg-white z-10 absolute w-full">
                     {gameSuggestions.map((game, index) => (
-                      <div 
-                        key={index}
+                      <li 
+                        key={index} 
                         className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
                         onClick={() => selectGame(game)}
                       >
                         <div className="font-medium">{game.name}</div>
                         <div className="text-sm text-gray-600">
-                          Complexity: {parseFloat(game.complexity).toFixed(1)} | Players: {game.minPlayers || '?'}–{game.maxPlayers || '?'}
+                          Released: {game.yearPublished}
                         </div>
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
                 
               </div>
