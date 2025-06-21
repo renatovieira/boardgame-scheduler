@@ -183,6 +183,25 @@ export default function App() {
     return `${window.location.origin}/?table=${tableId}`;
   };
 
+  const getComplexityCategory = (complexityValue) => {
+    if (complexityValue < 2) return 'Light';
+    if (complexityValue < 3) return 'Medium';
+    if (complexityValue < 4) return 'Medium-Heavy';
+    return 'Heavy';
+  };
+
+  const getComplexity = (complexityValue) => {
+    if (!complexityValue) return 'N/A';
+
+    return `${getComplexityCategory(complexityValue)} (${complexityValue})`;
+  };
+
+  const getPlayingTime = (minPlayingTime, maxPlayingTime) => {
+    if (!minPlayingTime || !maxPlayingTime) return 'N/A';
+
+    return `${minPlayingTime}-${maxPlayingTime}`;
+  }; 
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -356,8 +375,8 @@ export default function App() {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <h4 className="font-medium text-gray-700 mb-2">Game Details</h4>
-                      <p className="text-sm text-gray-600">Complexity: {currentTable.gameData.complexity || 'N/A'}</p>
-                      <p className="text-sm text-gray-600">Duration: {currentTable.gameData.playingTime || 'N/A'}</p>
+                      <p className="text-sm text-gray-600">Complexity: {getComplexity(currentTable.gameData.complexity)}</p>
+                      <p className="text-sm text-gray-600">Duration: {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)} minutes</p>
                       <a 
                         href={currentTable.gameData.link}
                         target="_blank"
