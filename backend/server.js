@@ -20,15 +20,11 @@ const TableSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   time: { type: String, required: true },
   location: { type: String, required: true },
+  gameName: { type: String },
+  gameId: { type: String },
   playersNeeded: { type: Number, required: true },
   organizerJoins: { type: Boolean, default: false },
   participants: { type: [String], default: [] },
-  
-  // Two possible modes:
-  isFlexible: { type: Boolean, default: false }, // New field
-
-  // Single Game Mode
-  gameName: { type: String },
   gameData: {
     id: String,
     name: String,
@@ -37,9 +33,8 @@ const TableSchema = new mongoose.Schema({
     link: String,
     youtubeLink: String
   },
-
-  // Flexible Game Mode
-  flexibleGames: [{
+  isFlexible: { type: Boolean, default: false },
+  flexibleGames: [{ 
     id: String,
     name: String,
     playingTime: String,

@@ -49,6 +49,13 @@ export default function App() {
 
   // Create a new table (single or flexible)
   const createTable = async () => {
+    const { date, time, location, playersNeeded } = formData;
+
+    if (!date || !time || !location || !playersNeeded) {
+      alert("Please fill in all required fields: Date, Time, and Location")
+      return;
+    }
+
     const payload = {
       ...formData,
       gameName: formData.gameName,
@@ -250,6 +257,9 @@ export default function App() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 />
+                {!formData.date && (
+                  <p className="text-xs text-red-600">Date is required</p>
+                )}
               </div>
 
               <div>
@@ -262,6 +272,9 @@ export default function App() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 />
+                {!formData.time && (
+                  <p className="text-xs text-red-600">Time is required</p>
+                )}
               </div>
 
               <div>
@@ -275,6 +288,9 @@ export default function App() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
                 />
+                {!formData.location && (
+                  <p className="text-xs text-red-600">Location is required</p>
+                )}
               </div>
 
               <div>
@@ -370,6 +386,9 @@ export default function App() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                   required
                 />
+                {!formData.date && (
+                  <p className="text-xs text-red-600">Date is required</p>
+                )}
               </div>
 
               <div>
@@ -382,6 +401,9 @@ export default function App() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                   required
                 />
+                {!formData.time && (
+                  <p className="text-xs text-red-600">Time is required</p>
+                )}
               </div>
 
               <div>
@@ -395,6 +417,9 @@ export default function App() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                   required
                 />
+                {!formData.location && (
+                  <p className="text-xs text-red-600">Location is required</p>
+                )}
               </div>
 
               <div>
