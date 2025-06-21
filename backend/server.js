@@ -100,6 +100,9 @@ app.get('/api/game/:id', async (req, res) => {
 
       // Check if game has a name
       if (!game || !game.name || !game.name.value) {
+        console.error("Result: ", result);
+        console.error("Items: ", result.items);
+        console.error("Item: ", result.items.item);
         return res.status(404).json({ error: "Game not found on BoardGameGeek" });
       }
 
@@ -130,7 +133,6 @@ app.get('/api/game/:id', async (req, res) => {
   }
 });
 
-// Create Table
 // Create Table
 app.post('/api/table', async (req, res) => {
   const data = req.body;
