@@ -145,22 +145,33 @@ export default function App() {
   };
 
   // Search for games on BGG
-  const handleGameSearch = async (e) => {
-    const query = e.target.value;
-    setFormData({ ...formData, gameName: query });
+  const handleGameSearch = async (value) => {
+    if (value.length < 3) {
+      setGameSuggestions([]);
+      return;
+    }
 
-    if (query.length > 2) {
-      setSearchingGame(true);
-      try {
-        const res = await fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        setGameSuggestions(data);
-      } catch (err) {
-        console.error("Failed to fetch games:", err);
+    try {
+      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(value)}`);
+      const data = await res.json();
+
+      // Make sure data is an array before setting
+      if (Array.isArray(data)) {
+        // Safely map games
+        const safeGames = data.map(game => ({
+          id: game.id || 'Unknown ID',
+          name: game.name || 'Unknown Game',
+          yearPublished: game.yearPublished || 'N/A',
+          type: game.type || 'boardgame'
+        }));
+
+        setGameSuggestions(safeGames);
+      } else {
+        console.error("Unexpected game search response:", data);
         setGameSuggestions([]);
       }
-      setSearchingGame(false);
-    } else {
+    } catch (err) {
+      console.error("Game search failed:", err);
       setGameSuggestions([]);
     }
   };
