@@ -250,6 +250,26 @@ app.get('/preview/:id', async (req, res) => {
   }
 });
 
+app.post('/api/table/:id/remove', async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  try {
+    const table = await Table.findById(id);
+
+    if (!table) return res.status(404).json({ error: 'Table not found' });
+
+    // Remove participant
+    table.participants = table.participants.filter(p => p !== name);
+    await table.save();
+
+    res.json(table);
+  } catch (err) {
+    console.error("Error removing participant:", err);
+    res.status(500).json({ error: "Failed to update table" });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

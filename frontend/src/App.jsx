@@ -10,6 +10,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [organizerName, setOrganizerName] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [participantToRemove, setParticipantToRemove] = useState(null);
 
   // Form state for creating table
   const [formData, setFormData] = useState({
@@ -422,11 +424,20 @@ export default function App() {
                     Participants ({currentTable.participants.length}/{currentTable.playersNeeded})
                   </h4>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-col space-y-2 mb-6">
                     {currentTable.participants.map((name, idx) => (
-                      <span key={idx} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                        {name}
-                      </span>
+                      <div key={idx} className="flex justify-between items-center bg-blue-50 px-4 py-2 rounded-lg">
+                        <span>{name}</span>
+                        <button
+                          onClick={() => {
+                            setParticipantToRemove(name);
+                            setShowConfirmModal(true);
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     ))}
                   </div>
 
@@ -473,6 +484,52 @@ export default function App() {
             )}
           </div>
         )}
+
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-auto">
+              <h3 className="text-lg font-semibold text-red-600">Warning: Removing a Player</h3>
+              <p className="mt-2 text-sm text-gray-600">
+                You are about to remove <strong>{participantToRemove}</strong> from the session.
+              </p>
+              <p className="mt-2 text-sm text-yellow-700 bg-yellow-100 p-2 rounded">
+                Please note: This action affects other players. Only remove yourself unless you have permission from the person.
+              </p>
+
+              <div className="mt-4 flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${currentTable._id}/remove`,  {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: participantToRemove }),
+                      });
+
+                      const updatedTable = await res.json();
+                      setCurrentTable(updatedTable);
+                      setTables(prev => prev.map(t => t._id === currentTable._id ? updatedTable : t));
+                      setShowConfirmModal(false);
+                    } catch (err) {
+                      console.error("Failed to remove participant:", err);
+                      alert("Could not remove participant");
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Confirm Removal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Footer */}
