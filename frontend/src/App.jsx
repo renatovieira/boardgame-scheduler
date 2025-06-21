@@ -9,6 +9,7 @@ export default function App() {
   const [currentTable, setCurrentTable] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [organizerName, setOrganizerName] = useState('');
 
   // Form state for creating table
   const [formData, setFormData] = useState({
@@ -89,27 +90,32 @@ export default function App() {
   const createTable = async () => {
     const { date, time, location, gameName, playersNeeded } = formData;
 
-    if (!date || !time || !location || !gameName || playersNeeded < 1) {
-      alert("Please fill in all required fields.");
+    if (!date || !time || !location || !gameName || playersNeeded < 1 || !organizerName.trim()) {
+      alert("Please fill in all required fields including your name.");
       return;
     }
 
+    // Build payload
+    const payload = {
+      ...formData,
+      participants: formData.organizerJoins ? [organizerName] : [],
+    };
+
     try {
-      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table`, {
+      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table`,  {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const result = await res.json();
 
       // Redirect to join tab with table link
-      const newTableLink = `${window.location.origin}/?table=${result.id}`;
       window.history.pushState({}, '', `/?table=${result.id}`);
       setCurrentTableId(result.id);
 
       // Fetch and update current table
-      const tableRes = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${result.id}`);
+      const tableRes = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${result.id}`); 
       const tableData = await tableRes.json();
       setCurrentTable(tableData);
       setActiveTab('join');
@@ -186,6 +192,18 @@ export default function App() {
             <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create a New Game Session</h2>
             
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={organizerName}
+                  onChange={(e) => setOrganizerName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <input
@@ -306,6 +324,7 @@ export default function App() {
                 {/* Game Info Card */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-6">
                   <h3 className="font-bold text-lg">{currentTable.gameName || "Unknown Game"}</h3>
+                  <p className="text-sm text-gray-600">Organized by: {currentTable.participants[0] || 'Unknown'}</p>
                   <p className="text-sm text-gray-600">Date: {currentTable.date} at {currentTable.time}</p>
                   <p className="text-sm text-gray-600">Location: {currentTable.location}</p>
                 </div>
