@@ -56,14 +56,14 @@ export default function App() {
     };
 
     try {
-      const res = await fetch('https://your-backend.onrender.com/api/table',  {
+      const res = await fetch('https://boardgame-scheduler.onrender.com/api/table',  {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
-      const newTable = await fetch(`https://your-backend.onrender.com/api/table/${data.id}`).then(r  => r.json());
+      const newTable = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${data.id}`).then(r  => r.json());
       
       setTables([...tables, newTable]);
       setCurrentTableId(newTable._id);
@@ -122,20 +122,24 @@ export default function App() {
   // Helper for complexity range in joined table
   const getComplexityRangeForTable = (table) => {
     if (!table.flexibleGames || !table.flexibleGames.length) return '';
+    
+    const complexities = table.flexibleGames
+      .map(g => parseFloat(g.complexity))
+      .filter(c => c);
 
-    const complexities = table.flexibleGames.map(g => parseFloat(g.complexity));
+    if (complexities.length === 0) return '';
+
     const min = Math.min(...complexities);
     const max = Math.max(...complexities);
 
-    const formatComplexity = (val) => {
+    const format = (val) => {
       if (val < 2) return 'Light';
       if (val < 3.5) return 'Light–Medium';
       if (val < 4.5) return 'Medium';
       return 'Heavy';
     };
 
-    if (min === max) return formatComplexity(min);
-    return `${formatComplexity(min)} – ${formatComplexity(max)}`;
+    return min === max ? format(min) : `${format(min)} – ${format(max)}`;
   };
 
   // Search for games on BGG
@@ -494,47 +498,66 @@ export default function App() {
             {tables.length > 0 && tables.find(t => t.id === currentTableId) && (
               <div className="space-y-6">
                 {/* Show game info depending on session type */}
-                {tables.find(t => t.id === currentTableId).isFlexible ? (
+                {tables.find(t => t._id === currentTableId)?.isFlexible ? (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-bold text-lg mb-2">Suggested Games</h3>
                     <div className="space-y-2">
-                      {tables.find(t => t.id === currentTableId).flexibleGames.map((game, idx) => (
+                      {tables.find(t => t._id === currentTableId)?.flexibleGames?.map((game, idx) => (
                         <div key={idx} className="flex justify-between">
-                          <a 
-                            href={game.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            {game.name}
-                          </a>
-                          <span className="text-sm text-gray-600">
-                            Complexity: {parseFloat(game.complexity).toFixed(1)}
-                          </span>
+                          <span className="font-medium">{game.name}</span>
+                          {game.complexity && (
+                            <span className="text-sm text-gray-600">
+                              Complexity: {parseFloat(game.complexity).toFixed(1)}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
-                    <div className="mt-2 text-sm text-gray-700">
-                      Complexity Range: <strong>{getComplexityRangeForTable(tables.find(t => t.id === currentTableId))}</strong>
-                    </div>
+                    {tables.find(t => t._id === currentTableId)?.flexibleGames?.length > 0 && (
+                      <div className="mt-2 text-sm text-gray-700">
+                        Complexity Range: <strong>{getComplexityRangeForTable(tables.find(t => t._id === currentTableId))}</strong>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-bold text-lg mb-2">{tables.find(t => t.id === currentTableId).gameData.name}</h3>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Date: {tables.find(t => t.id === currentTableId).date} at {tables.find(t => t.id === currentTableId).time}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Location: {tables.find(t => t.id === currentTableId).location}
-                    </p>
-                    <a 
-                      href={tables.find(t => t.id === currentTableId).gameData.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 text-sm hover:underline mt-2 inline-block"
-                    >
-                      View on BoardGameGeek
-                    </a>
+                    <h3 className="font-bold text-lg mb-2">
+                      {tables.find(t => t._id === currentTableId)?.gameName || "Unknown Game"}
+                    </h3>
+
+                    {/* Only show BGG data if gameData exists */}
+                    {tables.find(t => t._id === currentTableId)?.gameData ? (
+                      <>
+                        <p className="text-sm text-gray-600 mb-1">
+                          Date: {tables.find(t => t._id === currentTableId).date} at {tables.find(t => t._id === currentTableId).time}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Location: {tables.find(t => t._id === currentTableId).location}
+                        </p>
+                        <div className="mt-2 flex items-center gap-4 text-sm">
+                          <a 
+                            href={tables.find(t => t._id === currentTableId).gameData.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            View on BoardGameGeek
+                          </a>
+                          <a 
+                            href={tables.find(t => t._id === currentTableId).gameData.youtubeLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-red-600 hover:underline"
+                          >
+                            How to Play (YouTube)
+                          </a>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-600">
+                        This game was created without a known ID. No extra details are available.
+                      </p>
+                    )}
                   </div>
                 )}
 
