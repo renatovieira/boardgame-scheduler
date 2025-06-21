@@ -29,16 +29,32 @@ export default function App() {
 
     if (tableId) {
       setLoading(true);
+      
+      // Load table data
       fetch(`https://boardgame-scheduler.onrender.com/api/table/${tableId}`) 
         .then(res => res.json())
-        .then(data => {
-          setCurrentTable(data);
+        .then(async (data) => {
+          // Now, if we have gameId, fetch full BGG data
+          if (data.gameId) {
+            try {
+              const gameRes = await fetch(`https://boardgame-scheduler.onrender.com/api/game/${data.gameId}`); 
+              const gameData = await gameRes.json();
+
+              // Merge gameData into current table
+              setCurrentTable({ ...data, gameData });
+            } catch (err) {
+              console.warn("Failed to load BGG data:", err);
+              setCurrentTable(data); // Still show basic info
+            }
+          } else {
+            setCurrentTable(data); // No game ID → skip BGG lookup
+          }
+
           setCurrentTableId(tableId);
           setActiveTab('join');
           setLoading(false);
         })
         .catch(err => {
-          console.error("Failed to load table:", err);
           setError("Could not find this session");
           setLoading(false);
         });
