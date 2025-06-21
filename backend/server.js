@@ -91,29 +91,42 @@ app.get('/api/game/:id', async (req, res) => {
     
     const parser = new xml2js.Parser({ explicitArray: false });
     parser.parseString(response.data, (err, result) => {
-      if (err) return res.status(500).json({ error: 'Failed to parse XML' });
+      if (err) {
+        console.error("XML parse error:", err);
+        return res.status(500).json({ error: "Failed to parse BGG data" });
+      }
 
-      const game = result.items?.item || {};
-      
+      const game = result.items.item;
+
+      // Check if game has a name
+      if (!game || !game.name || !game.name.value) {
+        return res.status(404).json({ error: "Game not found on BoardGameGeek" });
+      }
+
+      // Build clean JSON output
       const detailedGame = {
         id: game.$.id,
-        name: game.name?.['$']?.value || 'Unknown',
-        description: game.description ? game.description.replace(/<\/?[^>]+(>|$)/g, "") : 'No description available.',
-        minPlayers: game.minplayers?.['$']?.value,
-        maxPlayers: game.maxplayers?.['$']?.value,
-        playingTime: game.playingtime?.['$']?.value,
-        complexity: parseFloat(game.statistics?.ratings?.averageweight?.['$']?.value || 0).toFixed(2),
-        rating: parseFloat(game.statistics?.ratings?.average?.['$']?.value || 0).toFixed(2),
+        name: game.name.value,
+        description: game.description?.toString().replace(/<\/?[^>]+(>|$)/g, "").substring(0, 200) + '...' || 'No description available.',
+        minPlayers: game.minplayers?.['$']?.value || game.minplayers || '?',
+        maxPlayers: game.maxplayers?.['$']?.value || game.maxplayers || '?',
+        playingTime: game.playingtime?.['$']?.value || game.playingtime || 'N/A',
+        complexity: game.statistics?.ratings?.averageweight?.['$']?.value 
+          ? parseFloat(game.statistics.ratings.averageweight['$'].value).toFixed(2)
+          : 'N/A',
+        rating: game.statistics?.ratings?.average?.['$']?.value 
+          ? parseFloat(game.statistics.ratings.average['$'].value).toFixed(2)
+          : 'N/A',
         link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
-        thumbnail: game.thumbnail ? game.thumbnail['$'].value : null,
-        youtubeLink: "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${game.name?.['$']?.value} how to play`)
+        thumbnail: game.thumbnail?.['$']?.value || null,
+        youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${game.name.value} how to play board game`)}`,
       };
 
       res.json(detailedGame);
     });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ error: 'Failed to fetch game details' });
+    console.error("Error fetching from BGG:", error.message);
+    res.status(500).json({ error: "Failed to fetch game details from BGG" });
   }
 });
 
