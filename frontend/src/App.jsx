@@ -45,6 +45,12 @@ export default function App() {
     }
   }, []);
 
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-GB', options).format(date);
+  };  
+
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -325,7 +331,7 @@ export default function App() {
                 <div className="bg-gray-50 p-4 rounded-lg mb-6">
                   <h3 className="font-bold text-lg">{currentTable.gameName || "Unknown Game"}</h3>
                   <p className="text-sm text-gray-600">Organized by: {currentTable.participants[0] || 'Unknown'}</p>
-                  <p className="text-sm text-gray-600">Date: {currentTable.date} at {currentTable.time}</p>
+                  <p className="text-sm text-gray-600">Date: {formatDateWithOrdinal(currentTable.date)} at {currentTable.time}</p>
                   <p className="text-sm text-gray-600">Location: {currentTable.location}</p>
                 </div>
 
