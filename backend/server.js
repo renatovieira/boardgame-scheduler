@@ -123,6 +123,7 @@ app.get('/api/game/:id', async (req, res) => {
 });
 
 // Create Table
+// Create Table
 app.post('/api/table', async (req, res) => {
   const data = req.body;
   const oneMonthFromNow = new Date();
@@ -133,7 +134,7 @@ app.post('/api/table', async (req, res) => {
     return res.status(400).json({ error: "You cannot schedule games more than 30 days in advance." });
   }
 
-  // If it's a flexible session, remove single-game fields and validate game list
+  // If it's a flexible session, remove single-game fields
   if (data.isFlexible) {
     delete data.gameName;
     delete data.gameData;
@@ -144,6 +145,36 @@ app.post('/api/table', async (req, res) => {
   } else {
     // If it's a single game session, remove flexible fields
     delete data.flexibleGames;
+
+    // If gameId is present, fetch full game data
+    if (data.gameId) {
+      try {
+        const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${data.gameId}&stats=1`);
+        
+        const parser = new xml2js.Parser({ explicitArray: false });
+        parser.parseString(response.data, (err, result) => {
+          if (err) {
+            console.error("XML parse error:", err);
+            return res.status(500).json({ error: "Failed to parse BGG data" });
+          }
+
+          const game = result.items?.item || {};
+          
+          data.gameData = {
+            id: game.$.id,
+            name: game.name?.['$']?.value || 'Unknown',
+            playingTime: game.playingtime?.['$']?.value || 'N/A',
+            complexity: parseFloat(game.statistics?.ratings?.averageweight?.['$']?.value || 0).toFixed(2),
+            link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
+            thumbnail: game.thumbnail ? game.thumbnail['$'].value : null,
+            youtubeLink: "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${game.name?.['$']?.value} how to play`)
+          };
+        });
+      } catch (error) {
+        console.warn("Could not fetch full game data from BGG:", error.message);
+        // Continue without gameData
+      }
+    }
   }
 
   const newTable = new Table(data);

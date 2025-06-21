@@ -12,7 +12,8 @@ export default function App() {
     time: '',
     location: '',
     gameName: '',
-    playersNeeded: 1,
+    gameId: null, // ← NEW
+    playersNeeded: 4,
     organizerJoins: true,
     isFlexible: false,
     flexibleGames: [],
@@ -48,28 +49,21 @@ export default function App() {
 
   // Create a new table (single or flexible)
   const createTable = async () => {
-    const requiredFields = ['date', 'time', 'location', 'playersNeeded'];
-    if (!formData.isFlexible && !formData.gameName) {
-      alert("Please select a game");
-      return;
-    }
-
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        alert("Please fill in all required fields");
-        return;
-      }
-    }
+    const payload = {
+      ...formData,
+      gameName: formData.gameName,
+      ...(formData.gameId && { gameId: formData.gameId }) // Only include if present
+    };
 
     try {
-      const res = await fetch('https://boardgame-scheduler.onrender.com/api/table', {
+      const res = await fetch('https://your-backend.onrender.com/api/table',  {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
-      const newTable = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${data.id}`).then(r => r.json());
+      const newTable = await fetch(`https://your-backend.onrender.com/api/table/${data.id}`).then(r  => r.json());
       
       setTables([...tables, newTable]);
       setCurrentTableId(newTable._id);
@@ -177,29 +171,12 @@ export default function App() {
   };
 
   // Select a game and add it to flexibleGames or set as single game
-  const selectGame = async (game) => {
-    const detailedRes = await fetch(`https://boardgame-scheduler.onrender.com/api/game/${game.id}`);
-    const detailedGame = await detailedRes.json();
-
-    if (formData.isFlexible) {
-      // Add to flexibleGames list if not already there
-      if (!formData.flexibleGames.some(g => g.id === game.id)) {
-        setFormData({
-          ...formData,
-          flexibleGames: [...formData.flexibleGames, detailedGame],
-          gameName: ''
-        });
-      }
-    } else {
-      // Set as single game
-      setFormData({
-        ...formData,
-        gameName: detailedGame.name,
-        gameData: detailedGame
-      });
-    }
-
-    setGameSuggestions([]);
+  const selectGame = (game) => {
+    setFormData({
+      ...formData,
+      gameName: game.name
+    });
+    setGameSuggestions([]); // Hide dropdown
   };
 
   return (
@@ -309,7 +286,6 @@ export default function App() {
                   }}
                   placeholder="Start typing to search..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  autoComplete="off"
                 />
                 
                 {/* Game suggestions dropdown */}
@@ -319,7 +295,14 @@ export default function App() {
                       <li 
                         key={index} 
                         className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                        onClick={() => selectGame(game)}
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            gameName: game.name,
+                            gameId: game.id // ← Save ID here
+                          });
+                          setGameSuggestions([]);
+                        }}
                       >
                         <div className="font-medium">{game.name}</div>
                         <div className="text-sm text-gray-600">
