@@ -159,7 +159,7 @@ app.post('/api/table', async (req, res) => {
     // If gameId is present, fetch full game data
     if (data.gameId) {
       try {
-        const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${data.gameId}&stats=1`);
+        const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${id}&stats=1`);
         
         const parser = new xml2js.Parser({ explicitArray: false });
         parser.parseString(response.data, (err, result) => {
@@ -168,21 +168,32 @@ app.post('/api/table', async (req, res) => {
             return res.status(500).json({ error: "Failed to parse BGG data" });
           }
 
-          const game = result.items?.item || {};
-          
+          const game = result.items.item;
+          const gameName = game.name[0]['$']?.value;
+
+          // Check if game has a name
+          if (!game || !game.name) {
+            return res.status(404).json({ error: "Game not found on BoardGameGeek" });
+          }
+
           data.gameData = {
             id: game.$.id,
-            name: game.name?.['$']?.value || 'Unknown',
-            playingTime: game.playingtime?.['$']?.value || 'N/A',
-            complexity: parseFloat(game.statistics?.ratings?.averageweight?.['$']?.value || 0).toFixed(2),
+            name: gameName,
+            minPlayingTime: game.minplaytime?.['$']?.value || game.minplaytime || 'N/A',
+            maxPlayingTime: game.maxplaytime?.['$']?.value || game.maxplaytime || 'N/A',
+            complexity: game.statistics?.ratings?.averageweight?.['$']?.value 
+              ? parseFloat(game.statistics.ratings.averageweight['$'].value).toFixed(2)
+              : 'N/A',
             link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
-            thumbnail: game.thumbnail ? game.thumbnail['$'].value : null,
-            youtubeLink: "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${game.name?.['$']?.value} how to play`)
+            thumbnail: game.thumbnail || null,
+            image: game.image || null,
+            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${gameName} how to play board game`)}`,
           };
+
+          res.json(detailedGame);
         });
       } catch (error) {
         console.warn("Could not fetch full game data from BGG:", error.message);
-        // Continue without gameData
       }
     }
   }

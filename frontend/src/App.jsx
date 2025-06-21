@@ -29,25 +29,20 @@ export default function App() {
 
     if (tableId) {
       setLoading(true);
-      
-      // Load table data
+
+      // Only fetch the table once
       fetch(`https://boardgame-scheduler.onrender.com/api/table/${tableId}`) 
         .then(res => res.json())
-        .then(async (data) => {
-          // Now, if we have gameId, fetch full BGG data
-          if (data.gameId) {
-            try {
-              const gameRes = await fetch(`https://boardgame-scheduler.onrender.com/api/game/${data.gameId}`); 
-              const gameData = await gameRes.json();
-
-              // Merge gameData into current table
-              setCurrentTable({ ...data, gameData });
-            } catch (err) {
-              console.warn("Failed to load BGG data:", err);
-              setCurrentTable(data); // Still show basic info
-            }
+        .then((data) => {
+          // If we have gameData, use it directly
+          if (data.gameData) {
+            setCurrentTable(data);
           } else {
-            setCurrentTable(data); // No game ID → skip BGG lookup
+            // Fallback: still show table even without gameData
+            setCurrentTable({
+              ...data,
+              gameData: null
+            });
           }
 
           setCurrentTableId(tableId);
