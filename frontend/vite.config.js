@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// https://vitejs.dev/config/ 
 export default defineConfig({
   plugins: [react()],
-  root: '.', // Tells Vite to treat frontend/ as root
+  root: '.', // ensures index.html is found
 });
