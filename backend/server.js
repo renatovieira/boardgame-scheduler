@@ -88,51 +88,6 @@ app.get('/api/games', async (req, res) => {
   }
 });
 
-// Get Detailed Game Info
-app.get('/api/game/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${id}&stats=1`);
-    
-    const parser = new xml2js.Parser({ explicitArray: false });
-    parser.parseString(response.data, (err, result) => {
-      if (err) {
-        console.error("XML parse error:", err);
-        return res.status(500).json({ error: "Failed to parse BGG data" });
-      }
-
-      const game = result.items.item;
-      const gameName = game.name[0]['$']?.value;
-
-      // Check if game has a name
-      if (!game || !game.name) {
-        return res.status(404).json({ error: "Game not found on BoardGameGeek" });
-      }
-
-      // Build clean JSON output
-      const detailedGame = {
-        id: game.$.id,
-        name: gameName,
-        minPlayingTime: game.minplaytime?.['$']?.value || game.minplaytime || 'N/A',
-        maxPlayingTime: game.maxplaytime?.['$']?.value || game.maxplaytime || 'N/A',
-        complexity: game.statistics?.ratings?.averageweight?.['$']?.value 
-          ? parseFloat(game.statistics.ratings.averageweight['$'].value).toFixed(2)
-          : 'N/A',
-        link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
-        thumbnail: game.thumbnail || null,
-        image: game.image || null,
-        youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${gameName} how to play board game`)}`,
-      };
-
-      res.json(detailedGame);
-    });
-  } catch (error) {
-    console.error("Error fetching from BGG:", error.message);
-    res.status(500).json({ error: "Failed to fetch game details from BGG" });
-  }
-});
-
 // Create Table
 app.post('/api/table', async (req, res) => {
   const data = req.body;
@@ -187,10 +142,8 @@ app.post('/api/table', async (req, res) => {
             link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
             thumbnail: game.thumbnail || null,
             image: game.image || null,
-            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${gameName} how to play board game`)}`,
+            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${data.gameName} how to play board game`)}`,
           };
-
-          res.json(detailedGame);
         });
       } catch (error) {
         console.warn("Could not fetch full game data from BGG:", error.message);
@@ -232,8 +185,7 @@ app.get('/preview/:id', async (req, res) => {
       return res.status(404).send('Table not found');
     }
 
-    // If table has gameData, use that
-    const gameName = table.gameData?.name || table.gameName || "Board Game";
+    const gameName = table.gameName || table.gameData?.name || "Board Game";
 
     const formattedDate = formatDate(table.date);
     const formattedTime = table.time;
