@@ -294,7 +294,7 @@ export default function App() {
                   onChange={(e) => {
                     const value = e.target.value;
                     setFormData({ ...formData, gameName: value });
-                    // We'll add search logic next
+                    handleGameSearch(value);
                   }}
                   placeholder="Start typing to search..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -409,7 +409,7 @@ export default function App() {
                   onChange={(e) => {
                     const value = e.target.value;
                     setFormData({ ...formData, gameName: value });
-                    // We'll add search logic next
+                    handleGameSearch(value);
                   }}
                   placeholder="Start typing to search..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
