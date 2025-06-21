@@ -55,6 +55,25 @@ const formatDate = (dateString) => {
   return new Intl.DateTimeFormat('en-GB', options).format(date);
 };
 
+const getComplexityCategory = (complexityValue) => {
+  if (complexityValue < 2) return 'Light';
+  if (complexityValue < 3) return 'Medium';
+  if (complexityValue < 4) return 'Medium-Heavy';
+  return 'Heavy';
+};
+
+const getComplexity = (complexityValue) => {
+  if (!complexityValue) return 'N/A';
+
+  return `${getComplexityCategory(complexityValue)} (${complexityValue})`;
+};
+
+const getPlayingTime = (minPlayingTime, maxPlayingTime) => {
+  if (!minPlayingTime || !maxPlayingTime) return 'N/A';
+
+  return `${minPlayingTime}-${maxPlayingTime}`;
+};
+
 const Table = mongoose.model('Table', TableSchema);
 
 // Search BGG
@@ -209,7 +228,7 @@ app.get('/preview/:id', async (req, res) => {
 
           <!-- Open Graph / WhatsApp Preview -->
           <meta property="og:title" content="${gameName} • ${formattedDate} • ${formattedTime} • ${table.location}">
-          <meta property="og:description" content="${participantList}">
+          <meta property="og:description" content="Duration: ${getPlayingTime(table.gameData.minPlayingTime, table.gameData.maxPlayingTime)} min; Complexity: ${getComplexity(table.gameData.complexity)}">
           <meta property="og:image" content="${imageUrl}">
           <meta property="og:url" content="https://boardgame-scheduler.netlify.app/?table=${table._id}">
           <meta property="og:type" content="website">

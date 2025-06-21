@@ -360,48 +360,68 @@ export default function App() {
                 {/* Game Info Card */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-6">
                   <h3 className="font-bold text-lg">{currentTable.gameName || "Unknown Game"}</h3>
-                  <p className="text-sm text-gray-600">Organized by: {currentTable.participants[0] || 'Unknown'}</p>
-                  <p className="text-sm text-gray-600">Date: {formatDate(currentTable.date)} at {currentTable.time}</p>
-                  <p className="text-sm text-gray-600">Location: {currentTable.location}</p>
+                  <p className="text-sm text-gray-600">
+                    Date: {formatDate(currentTable.date)} at {currentTable.time}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Location: {currentTable.location}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Organized by: {currentTable.participants[0] || "Unknown"}
+                  </p>
                 </div>
 
-                {/* BGG Game Details (if available) */}
+                {/* Game Thumbnail + Details */}
                 {currentTable.gameData && (
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                      <h4 className="font-medium text-gray-700 mb-2">Game Details</h4>
-                      <p className="text-sm text-gray-600">Complexity: {getComplexity(currentTable.gameData.complexity)}</p>
-                      <p className="text-sm text-gray-600">Duration: {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)} minutes</p>
-                      <a 
-                        href={currentTable.gameData.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 text-sm hover:underline mt-2 inline-block"
-                      >
-                        View on BoardGameGeek
-                      </a>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start mb-6">
+                    {/* Thumbnail */}
+                    <div className="sm:col-span-1 flex justify-center">
+                      {currentTable.gameData.thumbnail && (
+                        <img
+                          src={currentTable.gameData.thumbnail}
+                          alt={`${currentTable.gameData.name} thumbnail`}
+                          className="max-w-full h-auto rounded shadow"
+                        />
+                      )}
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
-                      <h4 className="font-medium text-gray-700 mb-2">How to Play</h4>
-                      <a 
-                        href={currentTable.gameData.youtubeLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-red-600 text-sm hover:underline"
-                      >
-                        Watch tutorial video
-                      </a>
+                    {/* Game Stats */}
+                    <div className="sm:col-span-2">
+                      <h4 className="font-medium text-gray-700 mb-2">About {currentTable.gameData.name}</h4>
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        <li>Complexity: {getComplexity(currentTable.gameData.complexity)}</li>
+                        <li>Duration: {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)} minutes</li>
+                        <li>
+                          <a
+                            href={currentTable.gameData.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            View on BoardGameGeek
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            href={currentTable.gameData.youtubeLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-red-600 hover:underline"
+                          >
+                            How to Play (YouTube)
+                          </a>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 )}
 
-                {/* Participants */}
+                {/* Participants List */}
                 <div className="mb-6">
                   <h4 className="font-medium text-gray-700 mb-2">
                     Participants ({currentTable.participants.length}/{currentTable.playersNeeded})
                   </h4>
-                  
+
                   <div className="flex flex-wrap gap-2 mb-4">
                     {currentTable.participants.map((name, idx) => (
                       <span key={idx} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
@@ -411,7 +431,7 @@ export default function App() {
                   </div>
 
                   {currentTable.participants.length < currentTable.playersNeeded && (
-                    <form onSubmit={handleJoin}>
+                    <form onSubmit={handleJoin} className="mt-4">
                       <input
                         id="participantName"
                         type="text"
