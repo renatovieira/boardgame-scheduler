@@ -62,14 +62,14 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/table', {
+      const res = await fetch('https://boardgame-scheduler.onrender.com:5000/api/table', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       const data = await res.json();
-      const newTable = await fetch(`http://localhost:5000/api/table/${data.id}`).then(r => r.json());
+      const newTable = await fetch(`https://boardgame-scheduler.onrender.com:5000/api/table/${data.id}`).then(r => r.json());
       
       setTables([...tables, newTable]);
       setCurrentTableId(newTable._id);
@@ -83,7 +83,7 @@ export default function App() {
   // Join an existing table
   const joinTable = async (tableId, name) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/table/${tableId}/join`, {
+      const res = await fetch(`https://boardgame-scheduler.onrender.com:5000/api/table/${tableId}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
@@ -152,7 +152,7 @@ export default function App() {
     if (query.length > 2) {
       setSearchingGame(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/games?q=${encodeURIComponent(query)}`);
+        const res = await fetch(`https://boardgame-scheduler.onrender.com:5000/api/games?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         setGameSuggestions(data);
       } catch (err) {
@@ -167,7 +167,7 @@ export default function App() {
 
   // Select a game and add it to flexibleGames or set as single game
   const selectGame = async (game) => {
-    const detailedRes = await fetch(`http://localhost:5000/api/game/${game.id}`);
+    const detailedRes = await fetch(`https://boardgame-scheduler.onrender.com:5000/api/game/${game.id}`);
     const detailedGame = await detailedRes.json();
 
     if (formData.isFlexible) {
