@@ -6,199 +6,180 @@ export default function App() {
   const [gameSuggestions, setGameSuggestions] = useState([]);
   const [searchingGame, setSearchingGame] = useState(false);
   const [currentTableId, setCurrentTableId] = useState(null);
+  const [currentTable, setCurrentTable] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  // Form state for creating table
   const [formData, setFormData] = useState({
     date: '',
     time: '',
     location: '',
     gameName: '',
-    gameId: null, // ← NEW
+    gameId: null,
     playersNeeded: 4,
     organizerJoins: true,
-    isFlexible: false,
-    flexibleGames: [],
   });
 
-  // Dynamically update page title
+  // Load table if URL has ?table=12345
   useEffect(() => {
-    if (!currentTableId) {
-      document.title = "Board Game Scheduler";
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableId = urlParams.get('table');
+
+    if (tableId) {
+      setLoading(true);
+      fetch(`https://boardgame-scheduler.onrender.com/api/table/${tableId}`) 
+        .then(res => res.json())
+        .then(data => {
+          setCurrentTable(data);
+          setCurrentTableId(tableId);
+          setActiveTab('join');
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Failed to load table:", err);
+          setError("Could not find this session");
+          setLoading(false);
+        });
+    }
+  }, []);
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  // Handle game search
+  const handleGameSearch = async (e) => {
+    const query = e.target.value;
+    setFormData({ ...formData, gameName: query });
+
+    if (query.length < 3) {
+      setGameSuggestions([]);
       return;
     }
 
-    const table = tables.find(t => t._id === currentTableId);
-    if (!table) {
-      document.title = "Board Game Scheduler";
-      return;
+    setSearchingGame(true);
+    try {
+      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setGameSuggestions(data);
+    } catch (err) {
+      console.error("Search failed:", err);
+      setGameSuggestions([]);
     }
+    setSearchingGame(false);
+  };
 
-    const date = new Date(table.date).toLocaleDateString();
-    const { time, location } = table;
-
-    let title = `${date} • ${time} • ${location}`;
-
-    if (table.isFlexible && table.flexibleGames?.length > 0) {
-      const gameNames = table.flexibleGames.map(g => g.name).join('/');
-      title += ` • ${gameNames}`;
-    } else if (table.gameData?.name) {
-      title += ` • ${table.gameData.name}`;
-    }
-
-    document.title = title;
-  }, [currentTableId, tables]);
-
-  // Create a new table (single or flexible)
-  const createTable = async () => {
-    const { date, time, location, playersNeeded } = formData;
-
-    if (!date || !time || !location || !playersNeeded) {
-      alert("Please fill in all required fields: Date, Time, and Location")
-      return;
-    }
-
-    const payload = {
+  // Select a game from suggestions
+  const selectGame = (game) => {
+    setFormData({
       ...formData,
-      gameName: formData.gameName,
-      ...(formData.gameId && { gameId: formData.gameId }) // Only include if present
-    };
+      gameName: game.name,
+      gameId: game.id
+    });
+    setGameSuggestions([]);
+  };
+
+  // Create new table
+  const createTable = async () => {
+    const { date, time, location, gameName, playersNeeded } = formData;
+
+    if (!date || !time || !location || !gameName || playersNeeded < 1) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
     try {
-      const res = await fetch('https://boardgame-scheduler.onrender.com/api/table',  {
+      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      const newTable = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${data.id}`).then(r  => r.json());
-      
-      setTables([...tables, newTable]);
-      setCurrentTableId(newTable._id);
+      const result = await res.json();
+
+      // Redirect to join tab with table link
+      const newTableLink = `${window.location.origin}/?table=${result.id}`;
+      window.history.pushState({}, '', `/?table=${result.id}`);
+      setCurrentTableId(result.id);
+
+      // Fetch and update current table
+      const tableRes = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${result.id}`);
+      const tableData = await tableRes.json();
+      setCurrentTable(tableData);
       setActiveTab('join');
     } catch (err) {
       console.error("Failed to create table:", err);
-      alert("Failed to create table. Please try again.");
+      alert("Could not create the session. Please try again.");
     }
   };
 
-  // Join an existing table
-  const joinTable = async (tableId, name) => {
+  // Join a table
+  const handleJoin = async (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('participantName');
+    const name = nameInput.value.trim();
+
+    if (!name) return;
+
     try {
-      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${tableId}/join`, {
+      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${currentTableId}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
 
       const updatedTable = await res.json();
-      setTables(tables.map(t => t._id === tableId ? updatedTable : t));
+      setCurrentTable(updatedTable);
+      nameInput.value = '';
     } catch (err) {
-      console.error("Failed to join table:", err);
-      alert("Failed to join table. Please try again.");
+      console.error("Join failed:", err);
+      alert("Could not join the session");
     }
   };
 
-  const getTableLink = (tableId) => {
-    return `${window.location.origin}?table=${tableId}`;
-  };
-
+  // Copy link to clipboard
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    alert("Link copied to clipboard!");
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Link copied!");
+    });
   };
 
-  // Helper for complexity range in joined table
-  const getComplexityRangeForTable = (table) => {
-    if (!table.flexibleGames || !table.flexibleGames.length) return '';
-    
-    const complexities = table.flexibleGames
-      .map(g => parseFloat(g.complexity))
-      .filter(c => c);
-
-    if (complexities.length === 0) return '';
-
-    const min = Math.min(...complexities);
-    const max = Math.max(...complexities);
-
-    const format = (val) => {
-      if (val < 2) return 'Light';
-      if (val < 3.5) return 'Light–Medium';
-      if (val < 4.5) return 'Medium';
-      return 'Heavy';
-    };
-
-    return min === max ? format(min) : `${format(min)} – ${format(max)}`;
-  };
-
-  // Search for games on BGG
-  const handleGameSearch = async (value) => {
-    if (value.length < 3) {
-      setGameSuggestions([]);
-      return;
-    }
-
-    try {
-      const res = await fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(value)}`);
-      const data = await res.json();
-
-      // Make sure data is an array before setting
-      if (Array.isArray(data)) {
-        // Safely map games
-        const safeGames = data.map(game => ({
-          id: game.id || 'Unknown ID',
-          name: game.name || 'Unknown Game',
-          yearPublished: game.yearPublished || 'N/A',
-          type: game.type || 'boardgame'
-        }));
-
-        setGameSuggestions(safeGames);
-      } else {
-        console.error("Unexpected game search response:", data);
-        setGameSuggestions([]);
-      }
-    } catch (err) {
-      console.error("Game search failed:", err);
-      setGameSuggestions([]);
-    }
+  // Generate shareable link
+  const getTableLink = (tableId) => {
+    return `${window.location.origin}/?table=${tableId}`;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold mb-2">Board Game Scheduler</h1>
+          <h1 className="text-3xl font-bold">Board Game Scheduler</h1>
           <p className="opacity-90">Schedule and join board game sessions with friends</p>
         </div>
       </header>
 
+      {/* Tabs */}
       <main className="container mx-auto px-4 py-6">
-        {/* Tabs */}
-        <div className="flex flex-wrap border-b border-gray-300 mb-6">
+        <div className="flex border-b border-gray-300 mb-6">
           <button 
-            className={`px-4 py-2 sm:px-6 sm:py-3 font-medium transition-colors whitespace-nowrap ${
-              activeTab === 'organize-single' 
-                ? 'border-b-2 border-blue-600 text-blue-600' 
+            className={`px-6 py-3 font-medium ${
+              activeTab === 'organize-single'
+                ? 'border-b-2 border-blue-600 text-blue-600'
                 : 'text-gray-600 hover:text-blue-600'
             }`}
-            onClick={() => {
-              setActiveTab('organize-single');
-              setFormData({ ...formData, isFlexible: false });
-            }}
+            onClick={() => setActiveTab('organize-single')}
           >
-            Organize Single Game
-          </button>
-
-          <button 
-            className={`ml-auto px-4 py-2 sm:px-6 sm:py-3 font-medium transition-colors whitespace-nowrap ${
-              activeTab === 'join' 
-                ? 'border-b-2 border-green-600 text-green-600' 
-                : 'text-gray-600 hover:text-green-600'
-            }`}
-            onClick={() => setActiveTab('join')}
-          >
-            Join Table
+            Organize New Game
           </button>
         </div>
+
         {/* Organize Single Game Form */}
         {activeTab === 'organize-single' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
@@ -211,13 +192,10 @@ export default function App() {
                   type="date"
                   name="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 />
-                {!formData.date && (
-                  <p className="text-xs text-red-600">Date is required</p>
-                )}
               </div>
 
               <div>
@@ -226,13 +204,10 @@ export default function App() {
                   type="time"
                   name="time"
                   value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 />
-                {!formData.time && (
-                  <p className="text-xs text-red-600">Time is required</p>
-                )}
               </div>
 
               <div>
@@ -241,14 +216,11 @@ export default function App() {
                   type="text"
                   name="location"
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  onChange={handleInputChange}
                   placeholder="Your home, local café, etc."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 />
-                {!formData.location && (
-                  <p className="text-xs text-red-600">Location is required</p>
-                )}
               </div>
 
               <div>
@@ -257,30 +229,22 @@ export default function App() {
                   type="text"
                   name="gameName"
                   value={formData.gameName}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFormData({ ...formData, gameName: value });
-                    handleGameSearch(value);
-                  }}
+                  onChange={handleGameSearch}
                   placeholder="Start typing to search..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  autoComplete="off"
                 />
+
+                {/* Game Suggestions Dropdown */}
+                {searchingGame && <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded animate-pulse">Searching...</div>}
                 
-                {/* Game suggestions dropdown */}
                 {gameSuggestions.length > 0 && (
-                  <ul className="mt-2 border border-gray-200 p-2 max-h-40 overflow-y-auto bg-white z-10 absolute w-full">
+                  <ul className="mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-40 overflow-y-auto">
                     {gameSuggestions.map((game, index) => (
                       <li 
-                        key={index} 
+                        key={index}
                         className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                        onClick={() => {
-                          setFormData({
-                            ...formData,
-                            gameName: game.name,
-                            gameId: game.id // ← Save ID here
-                          });
-                          setGameSuggestions([]);
-                        }}
+                        onClick={() => selectGame(game)}
                       >
                         <div className="font-medium">{game.name}</div>
                         <div className="text-sm text-gray-600">
@@ -290,7 +254,6 @@ export default function App() {
                     ))}
                   </ul>
                 )}
-                
               </div>
 
               <div>
@@ -300,182 +263,144 @@ export default function App() {
                   name="playersNeeded"
                   min="1"
                   value={formData.playersNeeded}
-                  onChange={(e) => setFormData({ ...formData, playersNeeded: parseInt(e.target.value) || 1 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div className="flex items-center">
                 <input
                   type="checkbox"
+                  id="organizerJoins"
                   name="organizerJoins"
                   checked={formData.organizerJoins}
-                  onChange={(e) => setFormData({ ...formData, organizerJoins: e.target.checked })}
+                  onChange={handleInputChange}
                   className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
                 />
-                <label className="ml-2 text-sm text-gray-700">
+                <label htmlFor="organizerJoins" className="ml-2 text-sm text-gray-700">
                   I will join this session when created
                 </label>
               </div>
 
               <button
                 onClick={createTable}
-                type="button"
-                className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 Create Game Session
               </button>
             </div>
           </div>
         )}
-        {/* Join Form */}
-        {activeTab === 'join' && currentTableId && (
+
+        {/* Join Table View */}
+        {activeTab === 'join' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Join Game Session</h2>
-            
-            <div className="mb-6 p-4 bg-blue-50 text-blue-800 rounded-lg">
-              <p className="font-medium mb-2">Share this link with your friends:</p>
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  readOnly
-                  value={getTableLink(currentTableId)}
-                  className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg bg-white"
-                />
-                <button
-                  onClick={() => copyToClipboard(getTableLink(currentTableId))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
+            {loading ? (
+              <p>Loading session...</p>
+            ) : error ? (
+              <p className="text-red-600">{error}</p>
+            ) : currentTable ? (
+              <>
+                <h2 className="text-2xl font-semibold mb-6 text-gray-800">Join Game Session</h2>
 
-            {tables.length > 0 && tables.find(t => t.id === currentTableId) && (
-              <div className="space-y-6">
-                {/* Show game info depending on session type */}
-                {tables.find(t => t._id === currentTableId)?.isFlexible ? (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-bold text-lg mb-2">Suggested Games</h3>
-                    <div className="space-y-2">
-                      {tables.find(t => t._id === currentTableId)?.flexibleGames?.map((game, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span className="font-medium">{game.name}</span>
-                          {game.complexity && (
-                            <span className="text-sm text-gray-600">
-                              Complexity: {parseFloat(game.complexity).toFixed(1)}
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                {/* Game Info Card */}
+                <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                  <h3 className="font-bold text-lg">{currentTable.gameName || "Unknown Game"}</h3>
+                  <p className="text-sm text-gray-600">Date: {currentTable.date} at {currentTable.time}</p>
+                  <p className="text-sm text-gray-600">Location: {currentTable.location}</p>
+                </div>
+
+                {/* BGG Game Details (if available) */}
+                {currentTable.gameData && (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <h4 className="font-medium text-gray-700 mb-2">Game Details</h4>
+                      <p className="text-sm text-gray-600">Complexity: {currentTable.gameData.complexity || 'N/A'}</p>
+                      <p className="text-sm text-gray-600">Duration: {currentTable.gameData.playingTime || 'N/A'}</p>
+                      <a 
+                        href={currentTable.gameData.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 text-sm hover:underline mt-2 inline-block"
+                      >
+                        View on BoardGameGeek
+                      </a>
                     </div>
-                    {tables.find(t => t._id === currentTableId)?.flexibleGames?.length > 0 && (
-                      <div className="mt-2 text-sm text-gray-700">
-                        Complexity Range: <strong>{getComplexityRangeForTable(tables.find(t => t._id === currentTableId))}</strong>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-bold text-lg mb-2">
-                      {tables.find(t => t._id === currentTableId)?.gameName || "Unknown Game"}
-                    </h3>
 
-                    {/* Only show BGG data if gameData exists */}
-                    {tables.find(t => t._id === currentTableId)?.gameData ? (
-                      <>
-                        <p className="text-sm text-gray-600 mb-1">
-                          Date: {tables.find(t => t._id === currentTableId).date} at {tables.find(t => t._id === currentTableId).time}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Location: {tables.find(t => t._id === currentTableId).location}
-                        </p>
-                        <div className="mt-2 flex items-center gap-4 text-sm">
-                          <a 
-                            href={tables.find(t => t._id === currentTableId).gameData.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            View on BoardGameGeek
-                          </a>
-                          <a 
-                            href={tables.find(t => t._id === currentTableId).gameData.youtubeLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-red-600 hover:underline"
-                          >
-                            How to Play (YouTube)
-                          </a>
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-600">
-                        This game was created without a known ID. No extra details are available.
-                      </p>
-                    )}
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <h4 className="font-medium text-gray-700 mb-2">How to Play</h4>
+                      <a 
+                        href={currentTable.gameData.youtubeLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-600 text-sm hover:underline"
+                      >
+                        Watch tutorial video
+                      </a>
+                    </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-lg border border-gray-200">
-                    <h4 className="font-medium text-gray-700 mb-2">Session Info</h4>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Players: {tables.find(t => t.id === currentTableId).participants.length}/{tables.find(t => t.id === currentTableId).playersNeeded}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Time: {tables.find(t => t.id === currentTableId).time}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">Participants</h4>
+                {/* Participants */}
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    Participants ({currentTable.participants.length}/{currentTable.playersNeeded})
+                  </h4>
                   
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {tables.find(t => t.id === currentTableId).participants.map((participant, idx) => (
+                    {currentTable.participants.map((name, idx) => (
                       <span key={idx} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                        {participant}
+                        {name}
                       </span>
                     ))}
                   </div>
 
-                  {tables.find(t => t.id === currentTableId).participants.length < tables.find(t => t.id === currentTableId).playersNeeded ? (
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      const nameInput = document.getElementById('participantName');
-                      if (nameInput.value.trim()) {
-                        joinTable(currentTableId, nameInput.value.trim());
-                        nameInput.value = '';
-                      }
-                    }}>
-                      <div className="flex">
-                        <input
-                          id="participantName"
-                          type="text"
-                          placeholder="Your name"
-                          className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                        <button
-                          type="submit"
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-r-lg transition-colors"
-                        >
-                          Join
-                        </button>
-                      </div>
+                  {currentTable.participants.length < currentTable.playersNeeded && (
+                    <form onSubmit={handleJoin}>
+                      <input
+                        id="participantName"
+                        type="text"
+                        placeholder="Your name"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                      <button
+                        type="submit"
+                        className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Join This Session
+                      </button>
                     </form>
-                  ) : (
-                    <p className="text-green-600 font-medium">This session is full!</p>
                   )}
                 </div>
-              </div>
+
+                {/* Share Link Box */}
+                <div className="mt-6 p-4 bg-blue-50 text-blue-800 rounded-lg">
+                  <p className="font-medium mb-2">Share this link with friends:</p>
+                  <div className="flex items-center">
+                    <input
+                      type="text"
+                      readOnly
+                      value={getTableLink(currentTable._id)}
+                      className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg bg-white"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(getTableLink(currentTable._id))}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-red-600">Session not found. Try sharing the link again.</p>
             )}
           </div>
         )}
-        
       </main>
 
+      {/* Footer */}
       <footer className="bg-gray-100 py-6 mt-12">
         <div className="container mx-auto px-4 text-center text-gray-600">
           <p>Board Game Scheduler • Keep track of your gaming sessions with friends</p>
