@@ -97,32 +97,26 @@ app.get('/api/game/:id', async (req, res) => {
       }
 
       const game = result.items.item;
+      const gameName = game.name[0]['$']?.value;
 
       // Check if game has a name
-      if (!game || !game.name || !game.name.value) {
-        console.error("Result: ", result);
-        console.error("Items: ", result.items);
-        console.error("Item: ", result.items.item);
+      if (!game || !game.name) {
         return res.status(404).json({ error: "Game not found on BoardGameGeek" });
       }
 
       // Build clean JSON output
       const detailedGame = {
         id: game.$.id,
-        name: game.name.value,
-        description: game.description?.toString().replace(/<\/?[^>]+(>|$)/g, "").substring(0, 200) + '...' || 'No description available.',
-        minPlayers: game.minplayers?.['$']?.value || game.minplayers || '?',
-        maxPlayers: game.maxplayers?.['$']?.value || game.maxplayers || '?',
-        playingTime: game.playingtime?.['$']?.value || game.playingtime || 'N/A',
+        name: gameName,
+        minPlayingTime: game.minplaytime?.['$']?.value || game.minplaytime || 'N/A',
+        maxPlayingTime: game.maxplaytime?.['$']?.value || game.maxplaytime || 'N/A',
         complexity: game.statistics?.ratings?.averageweight?.['$']?.value 
           ? parseFloat(game.statistics.ratings.averageweight['$'].value).toFixed(2)
           : 'N/A',
-        rating: game.statistics?.ratings?.average?.['$']?.value 
-          ? parseFloat(game.statistics.ratings.average['$'].value).toFixed(2)
-          : 'N/A',
         link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
-        thumbnail: game.thumbnail?.['$']?.value || null,
-        youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${game.name.value} how to play board game`)}`,
+        thumbnail: game.thumbnail || null,
+        image: game.image || null,
+        youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${gameName} how to play board game`)}`,
       };
 
       res.json(detailedGame);
