@@ -696,7 +696,7 @@ export default function App() {
                             {game.name}
                           </a>
                           <span className="text-sm text-gray-600">
-                            Complexity: {parseFloat(game.complexity).toFixed(1)}
+                            Complexity: {getComplexity(game.complexity)}
                           </span>
                         </div>
                       ))}
