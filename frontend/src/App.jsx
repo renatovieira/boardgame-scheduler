@@ -416,38 +416,40 @@ export default function App() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Board Game Name*</label>
-                <input
-                  type="text"
-                  name="gameName"
-                  value={formData.gameName}
-                  onChange={handleGameSearch}
-                  placeholder="Start typing to search..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  autoComplete="off"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="gameName"
+                    value={formData.gameName}
+                    onChange={handleGameSearch}
+                    placeholder="Start typing to search..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    autoComplete="off"
+                  />
 
-                {/* Game Suggestions Dropdown */}
-                {searchingGame && <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded animate-pulse">Searching...</div>}
-                
-                {gameSuggestions.length > 0 && (
-                  <div 
-                    className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
-                    style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-                  >
-                    <ul className="p-0 m-0">
-                      {gameSuggestions.map((suggestion, idx) => (
-                        <li 
-                          key={idx} 
-                          className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                          onClick={() => addFlexibleGame(suggestion)}
-                        >
-                          <div className="font-medium">{suggestion.name}</div>
-                          <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  {/* Game Suggestions Dropdown */}
+                  {searchingGame && <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded animate-pulse">Searching...</div>}
+                  
+                  {gameSuggestions.length > 0 && (
+                    <div 
+                      className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
+                      style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+                    >
+                      <ul className="p-0 m-0">
+                        {gameSuggestions.map((suggestion, idx) => (
+                          <li 
+                            key={idx} 
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
+                            onClick={() => addFlexibleGame(suggestion)}
+                          >
+                            <div className="font-medium">{suggestion.name}</div>
+                            <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -546,46 +548,48 @@ export default function App() {
               {/* Game Search Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Suggested Games*</label>
-                <input
-                  type="text"
-                  placeholder="Start typing to search..."
-                  value={formData.gameName}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFormData({ ...formData, gameName: value });
-                    handleGameSearch(e);
-                  }}
-                  onKeyDown={(e) => {
-                    // Allow Enter key to add custom game
-                    if (e.key === 'Enter' && formData.gameName.trim()) {
-                      e.preventDefault();
-                      addCustomGame(formData.gameName);
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  autoComplete="off"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Start typing to search..."
+                    value={formData.gameName}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData({ ...formData, gameName: value });
+                      handleGameSearch(e);
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow Enter key to add custom game
+                      if (e.key === 'Enter' && formData.gameName.trim()) {
+                        e.preventDefault();
+                        addCustomGame(formData.gameName);
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    autoComplete="off"
+                  />
 
-                {/* Suggestions Dropdown */}
-                {gameSuggestions.length > 0 && (
-                  <div 
-                    className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
-                    style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-                  >
-                    <ul className="p-0 m-0">
-                      {gameSuggestions.map((suggestion, idx) => (
-                        <li 
-                          key={idx} 
-                          className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                          onClick={() => addFlexibleGame(suggestion)}
-                        >
-                          <div className="font-medium">{suggestion.name}</div>
-                          <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  {/* Suggestions Dropdown */}
+                  {gameSuggestions.length > 0 && (
+                    <div 
+                      className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
+                      style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+                    >
+                      <ul className="p-0 m-0">
+                        {gameSuggestions.map((suggestion, idx) => (
+                          <li 
+                            key={idx} 
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
+                            onClick={() => addFlexibleGame(suggestion)}
+                          >
+                            <div className="font-medium">{suggestion.name}</div>
+                            <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Selected Games List */}
