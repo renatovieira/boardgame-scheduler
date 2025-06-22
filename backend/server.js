@@ -203,42 +203,46 @@ app.post('/api/table/:id/join', async (req, res) => {
 app.get('/preview/:id', async (req, res) => {
   try {
     const table = await Table.findById(req.params.id);
-    if (!table) {
-      return res.status(404).send('Table not found');
+    if (!table) return res.status(404).send("Table not found");
+
+    let title, description, imageUrl;
+
+    if (table.isFlexible && table.flexibleGames?.length > 0) {
+      // Flexible session: show list of games
+      const gameNames = table.flexibleGames.map(g => g.name).join(", ");
+      title = `${formatDate(table.date)} • ${table.time} • ${table.location}`;
+      description = `${gameNames}`;
+      imageUrl = table.flexibleGames[0]?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
+    } else {
+      // Single-game session: unchanged
+      const gameName = table.gameData?.name || table.gameName || "Board Game";
+      title = `${gameName} • ${formatDate(table.date)} • ${table.time} • ${table.location}`;
+      description = `Duration: ${getPlayingTime(table.gameData?.minPlayingTime, table.gameData?.maxPlayingTime)} min; Complexity: ${getComplexity(table.gameData?.complexity)}`;
+      imageUrl = table.gameData?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
     }
 
-    const gameName = table.gameName || table.gameData?.name || "Board Game";
-
-    const formattedDate = formatDate(table.date);
-    const formattedTime = table.time;
-
-    const participants = table.participants || [];
-    const participantList = participants.length > 0
-      ? `Participants: ${participants.join(', ')}`
-      : `Organizer: ${table.organizerName}`;    
-
-    const imageUrl = table.gameData?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
+    const canonicalUrl = `https://boardgame-scheduler.netlify.app/?table=${table._id}`;
 
     const html = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <title>${gameName} • ${formattedDate} • ${formattedTime}</title>
+          <title>${title}</title>
 
-          <!-- Open Graph / WhatsApp Preview -->
-          <meta property="og:title" content="${gameName} • ${formattedDate} • ${formattedTime} • ${table.location}">
-          <meta property="og:description" content="Duration: ${getPlayingTime(table.gameData.minPlayingTime, table.gameData.maxPlayingTime)} min; Complexity: ${getComplexity(table.gameData.complexity)}">
+          <!-- Open Graph Tags -->
+          <meta property="og:title" content="${title}">
+          <meta property="og:description" content="${description}">
           <meta property="og:image" content="${imageUrl}">
-          <meta property="og:url" content="https://boardgame-scheduler.netlify.app/?table=${table._id}">
+          <meta property="og:url" content="${canonicalUrl}">
           <meta property="og:type" content="website">
 
-          <!-- Optional: Redirect to real URL -->
-          <meta http-equiv="refresh" content="0; url=https://boardgame-scheduler.netlify.app/?table=${table._id}" />
+          <!-- Redirect to real app -->
+          <meta http-equiv="refresh" content="0;URL='${canonicalUrl}'" />
         </head>
         <body style="background:#f9f9f9;color:#333;font-family:sans-serif;text-align:center;padding:40px;"> 
           <h1>Board Game Session</h1>
-          <p>Redirecting...</p>
+          <p>Loading...</p>
         </body>
       </html>
     `;
