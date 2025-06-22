@@ -429,7 +429,8 @@ export default function App() {
                 {searchingGame && <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded animate-pulse">Searching...</div>}
                 
                 {gameSuggestions.length > 0 && (
-                      <ul className="mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-[160px] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">                    {gameSuggestions.map((game, index) => (
+                  <ul className="mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-[160px] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                    {gameSuggestions.map((game, index) => (
                       <li 
                         key={index}
                         className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
@@ -563,7 +564,8 @@ export default function App() {
 
                 {/* Suggestions Dropdown */}
                 {gameSuggestions.length > 0 && (
-                  <ul className="mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-[160px] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">                    {gameSuggestions.map((suggestion, idx) => (
+                  <ul className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-40 overflow-y-auto">
+                    {gameSuggestions.map((suggestion, idx) => (
                       <li
                         key={idx}
                         className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
