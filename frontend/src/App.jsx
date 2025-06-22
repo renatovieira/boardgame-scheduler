@@ -220,18 +220,18 @@ export default function App() {
             }`}
             onClick={() => setActiveTab('organize-single')}
           >
-            Organize New Game
+            Organize New Game Session
           </button>
         </div>
 
         {/* Organize Single Game Form */}
         {activeTab === 'organize-single' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create a New Game Session</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Organize New Game Session</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name*</label>
                 <input
                   type="text"
                   placeholder="Enter your name"
@@ -243,7 +243,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date*</label>
                 <input
                   type="date"
                   name="date"
@@ -255,7 +255,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time*</label>
                 <input
                   type="time"
                   name="time"
@@ -267,7 +267,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location*</label>
                 <input
                   type="text"
                   name="location"
@@ -280,7 +280,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Board Game Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Board Game Name*</label>
                 <input
                   type="text"
                   name="gameName"
@@ -313,7 +313,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed*</label>
                 <input
                   type="number"
                   name="playersNeeded"
