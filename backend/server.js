@@ -147,16 +147,21 @@ app.post('/api/table', async (req, res) => {
           });
         });
 
-        const bggGame = result.items.item;
+        const game = result.items.item;
+        const gameName = game.name[0]['$']?.value;
 
         updatedFlexibleGames.push({
-          id: bggGame.$.id,
-          name: bggGame.name['$'].value,
-          playingTime: bggGame.playingtime?.['$']?.value || 'N/A',
-          complexity: bggGame.statistics?.ratings?.averageweight?.['$']?.value || 'N/A',
-          link: `https://boardgamegeek.com/boardgame/${bggGame.$.id}`,
-          thumbnail: bggGame.thumbnail?.['$']?.value || null,
-          youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${bggGame.name['$'].value} how to play board game`)}`,
+          id: game.$.id,
+          name: gameName,
+          minPlayingTime: game.minplaytime?.['$']?.value || game.minplaytime || 'N/A',
+          maxPlayingTime: game.maxplaytime?.['$']?.value || game.maxplaytime || 'N/A',
+          complexity: game.statistics?.ratings?.averageweight?.['$']?.value 
+            ? parseFloat(game.statistics.ratings.averageweight['$'].value).toFixed(2)
+            : 'N/A',
+           link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
+          thumbnail: game.thumbnail || null,
+          image: game.image || null,
+          youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${data.gameName} how to play board game`)}`,
         });
       }
 
@@ -179,17 +184,20 @@ app.post('/api/table', async (req, res) => {
           if (err) return res.status(500).json({ error: "Failed to parse BGG data" });
 
           const game = result.items.item;
+          const gameName = game.name[0]['$']?.value;
 
           data.gameData = {
             id: game.$.id,
-            name: game.name['$'].value,
-            minPlayers: game.minplayers?.['$']?.value || '?',
-            maxPlayers: game.maxplayers?.['$']?.value || '?',
-            playingTime: game.playingtime?.['$']?.value || 'N/A',
-            complexity: game.statistics?.ratings?.averageweight?.['$']?.value || 'N/A',
-            link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
-            thumbnail: game.thumbnail?.['$']?.value || null,
-            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(game.name['$'].value + " how to play")}`
+            name: gameName,
+            minPlayingTime: game.minplaytime?.['$']?.value || game.minplaytime || 'N/A',
+            maxPlayingTime: game.maxplaytime?.['$']?.value || game.maxplaytime || 'N/A',
+            complexity: game.statistics?.ratings?.averageweight?.['$']?.value 
+              ? parseFloat(game.statistics.ratings.averageweight['$'].value).toFixed(2)
+              : 'N/A',
+             link: `https://boardgamegeek.com/boardgame/${game.$.id}`,
+            thumbnail: game.thumbnail || null,
+            image: game.image || null,
+            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${data.gameName} how to play board game`)}`,
           };
         });
       } catch (err) {
