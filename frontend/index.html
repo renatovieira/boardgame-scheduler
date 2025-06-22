@@ -8,73 +8,28 @@
 
   <!-- Custom Scrollbar Styles -->
   <style>
-    /* Enable smooth scroll on mobile */
-    .scroll-touch {
-      -webkit-overflow-scrolling: touch;
-      overflow-y: auto;
+    /* Make scrollbars more visible on mobile */
+    .scrollbar-visible {
+      overflow: auto;
+      -ms-overflow-style: auto;  /* IE/Edge */
+      scrollbar-width: auto;     /* Firefox */
     }
 
-    /* Scrollable dropdown styles */
-    .scrollbar-thin {
-      scrollbar-width: thin; /* Firefox */
-      -ms-overflow-style: none; /* IE 11 */
-      overflow: -moz-scrollbars-none; /* Older Firefox */
+    /* Style for Webkit browsers (Chrome, Safari) */
+    .scrollbar-visible::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
     }
 
-    .scrollbar-thin::-webkit-scrollbar {
-      display: none !important; /* Hide scrollbar visually, still scrollable */
+    .scrollbar-visible::-webkit-scrollbar-track {
+      background: #f1f1f1;
     }
 
-    /* Optional: Add to prevent zoom on input focus on mobile */
-    input[type="text"], input[type="date"], input[type="time"] {
-      font-size: 16px;
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-
-    /* Fix for Tailwind's max-h not working on Android Chrome */
-    .max-h-40 {
-      max-height: 160px;
-    }
-
-    @media (min-width: 640px) {
-      .max-h-40 {
-        max-height: 200px;
-      }
-    }
-
-    /* Prevent body from bouncing when modal is open */
-    .modal-open {
-      overflow: hidden;
-      height: 100%;
-    }
-
-    /* Improve tap targets and spacing on mobile */
-    .touch-manipulation {
-      touch-action: manipulation;
-    }
-
-    /* Ensure images scale well */
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    /* Fix for Tailwind's rounded corners + overflow hidden on Safari */
-    .rounded {
-      border-radius: 0.5rem;
-    }
-
-    .rounded-lg {
-      border-radius: 0.75rem;
-    }
-
-    /* Optional: Custom link styles */
-    a {
-      word-break: break-word;
-      overflow-wrap: break-word;
+    .scrollbar-visible::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+      border: 3px solid transparent;
+      background-clip: content-box;
     }
   </style>
 </head>

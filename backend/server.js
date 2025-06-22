@@ -210,7 +210,7 @@ app.post('/api/table', async (req, res) => {
           if (err) return res.status(500).json({ error: "Failed to parse BGG data" });
 
           const game = result.items.item;
-          const gameName = Array.isArray(bggGame.name) ? bggGame.name[0]['$']?.value : (bggGame.name?.['$']?.value || 'N/A');
+          const gameName = Array.isArray(game.name) ? game.name[0]['$']?.value : (game.name?.['$']?.value || 'N/A');
 
           data.gameData = {
             id: game.$.id,

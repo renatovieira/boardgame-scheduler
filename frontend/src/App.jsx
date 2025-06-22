@@ -177,14 +177,9 @@ export default function App() {
       return;
     }
 
-    if (formData.isFlexible) {
-      const numberOfGames = formData.flexibleGames.filter(g => g.name.trim()).length;
-
-      // Lazy fix, not working for more than 3 games
-      if (numberOfGames < 2 || numberOfGames > 3) {
-        alert("Please select two or three games.");
-        return;         
-      }
+    if (formData.isFlexible && formData.flexibleGames.filter(g => g.name.trim()).length < 2) {
+      alert("Please select at least two games.");
+      return;  
     }
 
     try {
