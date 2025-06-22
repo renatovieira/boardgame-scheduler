@@ -28,11 +28,15 @@ export default function App() {
     ]
   });
 
-  const addFlexibleGameRow = () => {
+  const addNewFlexibleGameRow = () => {
     setFormData({
       ...formData,
       flexibleGames: [...formData.flexibleGames, {
-        name: '', id: '', playingTime: '', complexity: '', link: '', thumbnail: ''
+        name: '',
+        id: '',
+        playingTime: '',
+        complexity: '',
+        link: ''
       }]
     });
   };
@@ -46,9 +50,9 @@ export default function App() {
   };
 
   const handleFlexibleGameSearch = (index, value) => {
-    const newGames = [...formData.flexibleGames];
-    newGames[index].name = value;
-    setFormData({ ...formData, flexibleGames: newGames });
+    const newFlexibleGames = [...formData.flexibleGames];
+    newFlexibleGames[index].name = value;
+    setFormData({ ...formData, flexibleGames: newFlexibleGames });
 
     if (value.length >= 3) {
       fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(value)}`)
@@ -62,16 +66,16 @@ export default function App() {
   };
 
   const addFlexibleGame = (index, game) => {
-    const newGames = [...formData.flexibleGames];
-    newGames[index] = {
+    const newFlexibleGames = [...formData.flexibleGames];
+    newFlexibleGames[index] = {
       id: game.id,
       name: game.name,
       playingTime: game.playingTime || 'N/A',
       complexity: game.complexity || 'N/A',
-      link: game.link || '#', 
-      thumbnail: game.thumbnail || null
+      link: game.link || '#'
     };
-    setFormData({ ...formData, flexibleGames: newGames });
+    setFormData({ ...formData, flexibleGames: newFlexibleGames });
+    setGameSuggestions([]);
   };
 
   // Load table if URL has ?table=12345
@@ -430,7 +434,6 @@ export default function App() {
             </div>
           </div>
         )}
-
         {/* Organize Flexible Game Session Form */}
         {activeTab === 'organize-flexible' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
@@ -441,56 +444,131 @@ export default function App() {
                 Choose several games, people can decide what to play on the day.
               </p>
 
-              {/* Game Rows */}
-              {formData.flexibleGames.map((game, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Start typing to search..."
-                    value={game.name}
-                    onChange={(e) => handleFlexibleGameSearch(index, e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                    autoComplete="off"
-                  />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name*</label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={organizerName}
+                  onChange={(e) => setOrganizerName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
 
-                  {/* Suggestions Dropdown */}
-                  {gameSuggestions.length > 0 && (
-                    <ul className="absolute mt-12 bg-white border border-gray-200 rounded shadow-md z-10 w-96 max-h-40 overflow-y-auto">
-                      {gameSuggestions.map((suggestion, idx) => (
-                        <li 
-                          key={idx}
-                          className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
-                          onClick={() => addFlexibleGame(index, suggestion)}
-                        >
-                          <div className="font-medium">{suggestion.name}</div>
-                          <div className="text-sm text-gray-600">
-                            Released: {suggestion.yearPublished}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date*</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
 
-                  {/* +/- Buttons */}
-                  <button
-                    onClick={() => removeFlexibleGameRow(index)}
-                    type="button"
-                    className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    &ndash;
-                  </button>
-                  {index === formData.flexibleGames.length - 1 && (
+              {/* Time */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time*</label>
+                <input
+                  type="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location*</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  placeholder="Where will we play?"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+
+              {/* Flexible Games Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Suggested Games</label>
+
+                {formData.flexibleGames.map((game, index) => (
+                  <div key={index} className="flex items-center gap-2 mb-3">
+                    <input
+                      type="text"
+                      placeholder="Start typing to search..."
+                      value={game.name || ''}
+                      onChange={(e) => handleFlexibleGameSearch(index, e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      autoComplete="off"
+                    />
+
+                    {/* Suggestions Dropdown */}
+                    {gameSuggestions.length > 0 && (
+                      <ul className="absolute mt-12 bg-white border border-gray-200 rounded shadow-md z-10 w-96 max-h-40 overflow-y-auto">
+                        {gameSuggestions.map((suggestion, idx) => (
+                          <li 
+                            key={idx}
+                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
+                            onClick={() => addFlexibleGame(index, suggestion)}
+                          >
+                            <div className="font-medium">{suggestion.name}</div>
+                            <div className="text-sm text-gray-600">
+                              Released: {suggestion.yearPublished}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Add or Remove Row Buttons */}
                     <button
-                      onClick={addFlexibleGameRow}
+                      onClick={() => removeFlexibleGameRow(index)}
                       type="button"
-                      className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                     >
-                      +
+                      &ndash;
                     </button>
-                  )}
-                </div>
-              ))}
+                    {index === formData.flexibleGames.length - 1 && (
+                      <button
+                        onClick={addNewFlexibleGameRow}
+                        type="button"
+                        className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        +
+                      </button>
+                    )}
+                  </div>
+                ))}
 
+                {/* Display selected games below input */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {formData.flexibleGames.filter(g => g.id).map((game, idx) => (
+                    <span key={idx} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
+                      {game.name}
+                      <button
+                        onClick={() => {
+                          const newGames = [...formData.flexibleGames];
+                          newGames.splice(idx, 1);
+                          setFormData({ ...formData, flexibleGames: newGames });
+                        }}
+                        className="ml-2 text-purple-600"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* Players Needed */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed*</label>
                 <input
@@ -502,6 +580,7 @@ export default function App() {
                 />
               </div>
 
+              {/* Organizer Joins Checkbox */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -515,6 +594,7 @@ export default function App() {
                 </label>
               </div>
 
+              {/* Create Button */}
               <button
                 onClick={createTable}
                 className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
