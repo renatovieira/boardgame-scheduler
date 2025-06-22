@@ -645,6 +645,9 @@ export default function App() {
                   <p className="text-sm text-gray-600 mt-1">
                     Organized by: {currentTable.participants[0] || "Unknown"}
                   </p>
+                  <p className="text-sm text-gray-600">
+                    Complexity Range: {getComplexityRange(currentTable.flexibleGames)}
+                  </p>
                 </div>
 
                 {/* Show game details if it's a single game */}
@@ -697,11 +700,6 @@ export default function App() {
                           </span>
                         </div>
                       ))}
-                    </div>
-
-                    {/* Complexity Range */}
-                    <div className="text-sm text-gray-600">
-                      Complexity Range: <strong>{getComplexityRange(currentTable.flexibleGames)}</strong>
                     </div>
                   </div>
                 )}

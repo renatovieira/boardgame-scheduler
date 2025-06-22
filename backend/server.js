@@ -40,9 +40,13 @@ const TableSchema = new mongoose.Schema({
   flexibleGames: [{ 
     id: String,
     name: String,
-    playingTime: String,
+    minPlayingTime: String,
+    maxPlayingTime: String,
     complexity: String,
-    link: String
+    link: String,
+    thumbnail: String,
+    image: String,
+    youtubeLink: String
   }]
 }, {
   timestamps: true,
