@@ -317,7 +317,7 @@ export default function App() {
             }`}
             onClick={() => setActiveTab('organize-single')}
           >
-            Organize New Game Session
+            Organize Single Game Session
           </button>
 
           <button 
@@ -336,14 +336,14 @@ export default function App() {
               });
             }}
           >
-            Organize Flexible Games
+            Organize Flexible Game Session
           </button>          
         </div>
 
         {/* Organize Single Game Form */}
         {activeTab === 'organize-single' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Organize New Game Session</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Organize Single Game Session</h2>
             
             <div className="space-y-4">
               <div>
@@ -465,7 +465,7 @@ export default function App() {
         )}
         {activeTab === 'organize-flexible' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create a Flexible Game Session</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Organize Flexible Game Session</h2>
 
             <div className="space-y-4">
               {/* Organizer Name */}
