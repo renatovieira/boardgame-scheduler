@@ -78,6 +78,10 @@ const getPlayingTime = (minPlayingTime, maxPlayingTime) => {
   return `${minPlayingTime}-${maxPlayingTime}`;
 };
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const Table = mongoose.model('Table', TableSchema);
 
 // Search BGG
@@ -137,36 +141,54 @@ app.post('/api/table', async (req, res) => {
     try {
       // Fetch full details for each flexible game
       const updatedFlexibleGames = [];
+      let delay = 100;
 
       for (const game of data.flexibleGames) {
         if (!game.id) continue; // Skip non-BGG games
 
-        const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${game.id}&stats=1`);
-        const parser = new xml2js.Parser({ explicitArray: false });
-        
-        const result = await new Promise((resolve, reject) => {
-          parser.parseString(response.data, (err, parsedResult) => {
-            if (err) reject(err);
-            resolve(parsedResult);
+        try {
+          const response = await axios.get(`https://boardgamegeek.com/xmlapi2/thing?id=${game.id}&stats=1`);
+          const parser = new xml2js.Parser({ explicitArray: false });
+          
+          const result = await new Promise((resolve, reject) => {
+            parser.parseString(response.data, (err, parsedResult) => {
+              if (err) reject(err);
+              resolve(parsedResult);
+            });
           });
-        });
 
-        const bggGame = result.items.item;
-        const gameName = bggGame.name[0]['$']?.value;
+          const bggGame = result.items.item;
+          const gameName = bggGame.name[0]['$']?.value;
 
-        updatedFlexibleGames.push({
-          id: bggGame.$.id,
-          name: gameName,
-          minPlayingTime: bggGame.minplaytime?.['$']?.value || bggGame.minplaytime || 'N/A',
-          maxPlayingTime: bggGame.maxplaytime?.['$']?.value || bggGame.maxplaytime || 'N/A',
-          complexity: bggGame.statistics?.ratings?.averageweight?.['$']?.value 
-            ? parseFloat(bggGame.statistics.ratings.averageweight['$'].value).toFixed(2)
-            : 'N/A',
-           link: `https://boardgamegeek.com/boardgame/${bggGame.$.id}`,
-          thumbnail: bggGame.thumbnail || null,
-          image: bggGame.image || null,
-          youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${game.name} how to play board game`)}`,
-        });
+          updatedFlexibleGames.push({
+            id: bggGame.$.id,
+            name: gameName,
+            minPlayingTime: bggGame.minplaytime?.['$']?.value || bggGame.minplaytime || 'N/A',
+            maxPlayingTime: bggGame.maxplaytime?.['$']?.value || bggGame.maxplaytime || 'N/A',
+            complexity: bggGame.statistics?.ratings?.averageweight?.['$']?.value 
+              ? parseFloat(bggGame.statistics.ratings.averageweight['$'].value).toFixed(2)
+              : 'N/A',
+            link: `https://boardgamegeek.com/boardgame/${bggGame.$.id}`,
+            thumbnail: bggGame.thumbnail || null,
+            image: bggGame.image || null,
+            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${game.name} how to play board game`)}`,
+          });
+
+          await sleep(delay);          
+        } catch (err) {
+          console.warn("Could not fetch full game data from BGG:", err.message);
+          updatedFlexibleGames.push({
+            id: game.id,
+            name: game.name,
+            minPlayingTime: 'N/A',
+            maxPlayingTime: 'N/A',
+            complexity: 'N/A',
+            link: `https://boardgamegeek.com/boardgame/${game.id}`,
+            thumbnail: null,
+            image: null,
+            youtubeLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${game.name} how to play board game`)}`,
+          });
+        }        
       }
 
       data.flexibleGames = updatedFlexibleGames;
