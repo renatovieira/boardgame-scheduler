@@ -110,7 +110,7 @@ export default function App() {
     const { date, time, location, gameName, playersNeeded } = formData;
 
     if (!date || !time || !location || !gameName || playersNeeded < 1 || !organizerName.trim()) {
-      alert("Please fill in all required fields including your name.");
+      alert("Please fill in all required fields (*).");
       return;
     }
 
@@ -205,7 +205,7 @@ export default function App() {
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold">Board Game Scheduler</h1>
-          <p className="opacity-90">Schedule and join board game sessions with friends</p>
+          <p className="opacity-90">Schedule board game sessions with friends</p>
         </div>
       </header>
 
@@ -231,7 +231,7 @@ export default function App() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
                 <input
                   type="text"
                   placeholder="Enter your name"
@@ -243,7 +243,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                 <input
                   type="date"
                   name="date"
@@ -255,7 +255,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
                 <input
                   type="time"
                   name="time"
@@ -267,7 +267,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
                 <input
                   type="text"
                   name="location"
@@ -280,7 +280,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Board Game Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Board Game Name *</label>
                 <input
                   type="text"
                   name="gameName"
@@ -313,7 +313,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed *</label>
                 <input
                   type="number"
                   name="playersNeeded"
@@ -535,7 +535,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-gray-100 py-6 mt-12">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>Board Game Scheduler • Keep track of your gaming sessions with friends</p>
+          <p>Board Game Scheduler • Written by AI, made functional by humans</p>
         </div>
       </footer>
     </div>
