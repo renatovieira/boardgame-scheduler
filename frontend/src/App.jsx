@@ -23,10 +23,33 @@ export default function App() {
     organizerJoins: true,
     isFlexible: false,
     flexibleGames: [
-      { name: '', id: '', playingTime: '', complexity: '', link: '', thumbnail: '' },
-      { name: '', id: '', playingTime: '', complexity: '', link: '', thumbnail: '' }
     ]
   });
+
+  const addCustomGame = (name) => {
+    if (!name.trim()) return;
+
+    // Check if already exists
+    if (formData.flexibleGames.some(g => g.name === name)) return;
+
+    // Add as custom game
+    setFormData({
+      ...formData,
+      flexibleGames: [
+        ...formData.flexibleGames,
+        {
+          id: null,
+          name: name,
+          playingTime: '',
+          complexity: '',
+          link: ''
+        }
+      ]
+    });
+
+    setFormData({ ...formData, gameName: '' });
+    setGameSuggestions([]);
+  };
 
   const addNewFlexibleGameRow = () => {
     setFormData({
@@ -41,41 +64,31 @@ export default function App() {
     });
   };
 
-  const removeFlexibleGameRow = (index) => {
-    const newGames = formData.flexibleGames.filter((_, i) => i !== index);
+  const removeFlexibleGame = (index) => {
+    const newGames = [...formData.flexibleGames];
+    newGames.splice(index, 1);
+    setFormData({ ...formData, flexibleGames: newGames });
+  };
+
+  const addFlexibleGame = (game) => {
+    if (formData.flexibleGames.some(g => g.id === game.id)) return;
+
     setFormData({
       ...formData,
-      flexibleGames: newGames
+      flexibleGames: [
+        ...formData.flexibleGames,
+        {
+          id: game.id,
+          name: game.name,
+          playingTime: game.playingTime || 'N/A',
+          complexity: game.complexity || 'N/A',
+          link: game.link || '#'
+        }
+      ],
+      gameName: '', // Clear input
     });
-  };
 
-  const handleFlexibleGameSearch = (index, value) => {
-    const newFlexibleGames = [...formData.flexibleGames];
-    newFlexibleGames[index].name = value;
-    setFormData({ ...formData, flexibleGames: newFlexibleGames });
-
-    if (value.length >= 3) {
-      fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(value)}`)
-        .then(res => res.json())
-        .then(data => {
-          setGameSuggestions(data);
-        });
-    } else {
-      setGameSuggestions([]);
-    }
-  };
-
-  const addFlexibleGame = (index, game) => {
-    const newFlexibleGames = [...formData.flexibleGames];
-    newFlexibleGames[index] = {
-      id: game.id,
-      name: game.name,
-      playingTime: game.playingTime || 'N/A',
-      complexity: game.complexity || 'N/A',
-      link: game.link || '#'
-    };
-    setFormData({ ...formData, flexibleGames: newFlexibleGames });
-    setGameSuggestions([]);
+    setGameSuggestions([]); // Hide dropdown
   };
 
   // Load table if URL has ?table=12345
@@ -138,14 +151,19 @@ export default function App() {
     }
 
     setSearchingGame(true);
+
     try {
       const res = await fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(query)}`);
       const data = await res.json();
-      setGameSuggestions(data);
+
+      // Only keep base games
+      const filteredData = data.filter(g => g.id && g.name);
+      setGameSuggestions(filteredData);
     } catch (err) {
       console.error("Search failed:", err);
       setGameSuggestions([]);
     }
+
     setSearchingGame(false);
   };
 
@@ -161,20 +179,32 @@ export default function App() {
 
   // Create new table
   const createTable = async () => {
-    const { date, time, location, gameName, playersNeeded } = formData;
+    const { date, time, location, playersNeeded } = formData;
 
-    if (!date || !time || !location || !gameName || playersNeeded < 1 || !organizerName.trim()) {
+    if (!date || !time || !location || playersNeeded < 1 || !organizerName.trim()) {
       alert("Please fill in all required fields (*).");
       return;
     }
 
-    // Build payload
-    const payload = {
-      ...formData,
-      participants: formData.organizerJoins ? [organizerName] : [],
-    };
+    if (formData.isFlexible && formData.flexibleGames.filter(g => g.name.trim()).length < 2) {
+      alert("Please select at least two games.");
+      return;
+    }
 
     try {
+      const payload = {
+        ...formData,
+        participants: formData.organizerJoins ? [organizerName] : [],
+        gameData: undefined
+      };
+
+      if (payload.isFlexible) {
+        delete payload.gameName;
+        delete payload.gameId;
+      } else {
+        delete payload.flexibleGames;
+      }
+
       const res = await fetch(`https://boardgame-scheduler.onrender.com/api/table`,  {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -182,15 +212,14 @@ export default function App() {
       });
 
       const result = await res.json();
-
-      // Redirect to join tab with table link
+      const newTableLink = `${window.location.origin}/?table=${result.id}`;
       window.history.pushState({}, '', `/?table=${result.id}`);
-      setCurrentTableId(result.id);
 
-      // Fetch and update current table
       const tableRes = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${result.id}`); 
       const tableData = await tableRes.json();
+
       setCurrentTable(tableData);
+      setCurrentTableId(result.id);
       setActiveTab('join');
     } catch (err) {
       console.error("Failed to create table:", err);
@@ -400,7 +429,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed*</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Players*</label>
                 <input
                   type="number"
                   name="playersNeeded"
@@ -434,16 +463,12 @@ export default function App() {
             </div>
           </div>
         )}
-        {/* Organize Flexible Game Session Form */}
         {activeTab === 'organize-flexible' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create a Flexible Game Session</h2>
 
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Choose several games, people can decide what to play on the day.
-              </p>
-
+              {/* Organizer Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Your Name*</label>
                 <input
@@ -496,81 +521,72 @@ export default function App() {
                 />
               </div>
 
-              {/* Flexible Games Selection */}
+              {/* Game Search Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Suggested Games</label>
+                <input
+                  type="text"
+                  placeholder="Start typing to search..."
+                  value={formData.gameName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData({ ...formData, gameName: value });
+                    handleGameSearch(e);
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow Enter key to add custom game
+                    if (e.key === 'Enter' && formData.gameName.trim()) {
+                      e.preventDefault();
+                      addCustomGame(formData.gameName);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  autoComplete="off"
+                />
 
-                {formData.flexibleGames.map((game, index) => (
-                  <div key={index} className="flex items-center gap-2 mb-3">
-                    <input
-                      type="text"
-                      placeholder="Start typing to search..."
-                      value={game.name || ''}
-                      onChange={(e) => handleFlexibleGameSearch(index, e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                      autoComplete="off"
-                    />
-
-                    {/* Suggestions Dropdown */}
-                    {gameSuggestions.length > 0 && (
-                      <ul className="absolute mt-12 bg-white border border-gray-200 rounded shadow-md z-10 w-96 max-h-40 overflow-y-auto">
-                        {gameSuggestions.map((suggestion, idx) => (
-                          <li 
-                            key={idx}
-                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
-                            onClick={() => addFlexibleGame(index, suggestion)}
-                          >
-                            <div className="font-medium">{suggestion.name}</div>
-                            <div className="text-sm text-gray-600">
-                              Released: {suggestion.yearPublished}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {/* Add or Remove Row Buttons */}
-                    <button
-                      onClick={() => removeFlexibleGameRow(index)}
-                      type="button"
-                      className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      &ndash;
-                    </button>
-                    {index === formData.flexibleGames.length - 1 && (
-                      <button
-                        onClick={addNewFlexibleGameRow}
-                        type="button"
-                        className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                {/* Suggestions Dropdown */}
+                {gameSuggestions.length > 0 && (
+                  <ul className="mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-40 overflow-y-auto">
+                    {gameSuggestions.map((suggestion, idx) => (
+                      <li
+                        key={idx}
+                        className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
+                        onClick={() => {
+                          addFlexibleGame(suggestion);
+                        }}
                       >
-                        +
-                      </button>
-                    )}
-                  </div>
-                ))}
+                        <div className="font-medium">{suggestion.name}</div>
+                        <div className="text-sm text-gray-600">
+                          Released: {suggestion.yearPublished}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
-                {/* Display selected games below input */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {formData.flexibleGames.filter(g => g.id).map((game, idx) => (
-                    <span key={idx} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
+              {/* Selected Games List */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {formData.flexibleGames
+                  .filter(g => g.name.trim()) // 👈 Only show if name exists
+                  .map((game, index) => (
+                    <span key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
                       {game.name}
                       <button
-                        onClick={() => {
-                          const newGames = [...formData.flexibleGames];
-                          newGames.splice(idx, 1);
-                          setFormData({ ...formData, flexibleGames: newGames });
-                        }}
-                        className="ml-2 text-purple-600"
+                        type="button"
+                        onClick={() => removeFlexibleGame(index)}
+                        className="ml-2 text-purple-600 hover:text-purple-900 font-bold"
                       >
                         &times;
                       </button>
                     </span>
-                  ))}
-                </div>
+                  ))
+                }
               </div>
+
               {/* Players Needed */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed*</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Players*</label>
                 <input
                   type="number"
                   min="1"
