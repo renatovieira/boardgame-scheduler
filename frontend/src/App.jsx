@@ -645,9 +645,6 @@ export default function App() {
                   <p className="text-sm text-gray-600 mt-1">
                     Organized by: {currentTable.participants[0] || "Unknown"}
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Complexity Range: {getComplexityRange(currentTable.flexibleGames)}
-                  </p>
                 </div>
 
                 {/* Show game details if it's a single game */}
@@ -691,15 +688,38 @@ export default function App() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                       {currentTable.flexibleGames.map((game, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                        <div key={idx} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 flex flex-col">
+                          {/* Game Name + BGG Link */}
                           <a href={game.link} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline">
                             {game.name}
                           </a>
-                          <span className="text-sm text-gray-600">
+
+                          {/* Complexity */}
+                          <div className="mt-2 text-sm text-gray-600">
                             Complexity: {getComplexity(game.complexity)}
-                          </span>
+                          </div>
+
+                          {/* Duration */}
+                          <div className="text-sm text-gray-600">
+                            Duration: {getPlayingTime(game.minPlayingTime, game.maxPlayingTime)} min
+                          </div>
+
+                          {/* How to Play on YouTube */}
+                          <a 
+                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${game.name} how to play board game`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            How to Play (YouTube)
+                          </a>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Complexity Range */}
+                    <div className="text-sm text-gray-600">
+                      Complexity Range: <strong>{getComplexityRange(currentTable.flexibleGames)}</strong>
                     </div>
                   </div>
                 )}
