@@ -294,7 +294,11 @@ export default function App() {
     if (!minPlayingTime || !maxPlayingTime) return 'N/A';
 
     return `${minPlayingTime}-${maxPlayingTime}`;
-  }; 
+  };
+
+  const resetUrl = () => {
+    window.history.pushState({}, '', window.location.origin);
+  };  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -315,7 +319,10 @@ export default function App() {
                 ? 'border-b-2 border-blue-600 text-blue-600'
                 : 'text-gray-600 hover:text-blue-600'
             }`}
-            onClick={() => setActiveTab('organize-single')}
+            onClick={() => {
+              resetUrl();
+              setActiveTab('organize-single');
+            }}
           >
             Organize Single Game Session
           </button>
@@ -327,6 +334,7 @@ export default function App() {
                 : 'text-gray-600 hover:text-purple-600'
             }`}
             onClick={() => {
+              resetUrl();
               setActiveTab('organize-flexible');
               setFormData({
                 ...formData,
