@@ -272,8 +272,7 @@ export default function App() {
     if (complexityValue < 2) return 'Light';
     if (complexityValue < 3) return 'Medium';
     if (complexityValue < 4) return 'Medium-Heavy';
-    if (complexityValue >= 4) return 'Heavy';
-    return complexityValue;
+    return 'Heavy';
   };
 
   const getComplexityRange = (games) => {
@@ -291,13 +290,19 @@ export default function App() {
   };  
 
   const getComplexity = (complexityValue) => {
-    if (!complexityValue) return 'N/A';
+    if (!complexityValue || complexityValue === 'N/A') return 'N/A';
 
     return `${getComplexityCategory(complexityValue)} (${complexityValue})`;
   };
 
   const getPlayingTime = (minPlayingTime, maxPlayingTime) => {
     if (!minPlayingTime || !maxPlayingTime) return 'N/A';
+    if (minPlayingTime === 'N/A' && maxPlayingTime === 'N/A') {
+      return 'N/A';
+    }
+    if (minPlayingTime == maxPlayingTime) {
+      return `${minPlayingTime} min`;
+    }
 
     return `${minPlayingTime}-${maxPlayingTime} min`;
   };
