@@ -13,7 +13,6 @@ export default function App() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToRemove, setParticipantToRemove] = useState(null);
 
-  // Form state for creating table
   const [formData, setFormData] = useState({
     date: '',
     time: '',
@@ -22,7 +21,58 @@ export default function App() {
     gameId: null,
     playersNeeded: 4,
     organizerJoins: true,
+    isFlexible: false,
+    flexibleGames: [
+      { name: '', id: '', playingTime: '', complexity: '', link: '', thumbnail: '' },
+      { name: '', id: '', playingTime: '', complexity: '', link: '', thumbnail: '' }
+    ]
   });
+
+  const addFlexibleGameRow = () => {
+    setFormData({
+      ...formData,
+      flexibleGames: [...formData.flexibleGames, {
+        name: '', id: '', playingTime: '', complexity: '', link: '', thumbnail: ''
+      }]
+    });
+  };
+
+  const removeFlexibleGameRow = (index) => {
+    const newGames = formData.flexibleGames.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      flexibleGames: newGames
+    });
+  };
+
+  const handleFlexibleGameSearch = (index, value) => {
+    const newGames = [...formData.flexibleGames];
+    newGames[index].name = value;
+    setFormData({ ...formData, flexibleGames: newGames });
+
+    if (value.length >= 3) {
+      fetch(`https://boardgame-scheduler.onrender.com/api/games?q=${encodeURIComponent(value)}`)
+        .then(res => res.json())
+        .then(data => {
+          setGameSuggestions(data);
+        });
+    } else {
+      setGameSuggestions([]);
+    }
+  };
+
+  const addFlexibleGame = (index, game) => {
+    const newGames = [...formData.flexibleGames];
+    newGames[index] = {
+      id: game.id,
+      name: game.name,
+      playingTime: game.playingTime || 'N/A',
+      complexity: game.complexity || 'N/A',
+      link: game.link || '#', 
+      thumbnail: game.thumbnail || null
+    };
+    setFormData({ ...formData, flexibleGames: newGames });
+  };
 
   // Load table if URL has ?table=12345
   useEffect(() => {
@@ -187,6 +237,20 @@ export default function App() {
     return 'Heavy';
   };
 
+  const getComplexityRange = (games) => {
+    if (!games || games.length === 0) return '';
+    const complexities = games.map(g => parseFloat(g.complexity)).filter(c => c);
+
+    if (complexities.length === 0) return 'N/A';
+
+    const min = getComplexityCategory(Math.min(...complexities));
+    const max = getComplexityCategory(Math.max(...complexities));
+
+    return min === max
+      ? min
+      : `${min} – ${max}`;
+  };  
+
   const getComplexity = (complexityValue) => {
     if (!complexityValue) return 'N/A';
 
@@ -222,6 +286,25 @@ export default function App() {
           >
             Organize New Game Session
           </button>
+
+          <button 
+            className={`px-6 py-3 font-medium ${
+              activeTab === 'organize-flexible'
+                ? 'border-b-2 border-purple-600 text-purple-600'
+                : 'text-gray-600 hover:text-purple-600'
+            }`}
+            onClick={() => {
+              setActiveTab('organize-flexible');
+              setFormData({
+                ...formData,
+                isFlexible: true,
+                gameName: '',
+                gameId: null
+              });
+            }}
+          >
+            Organize Flexible Games
+          </button>          
         </div>
 
         {/* Organize Single Game Form */}
@@ -348,6 +431,99 @@ export default function App() {
           </div>
         )}
 
+        {/* Organize Flexible Game Session Form */}
+        {activeTab === 'organize-flexible' && (
+          <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create a Flexible Game Session</h2>
+
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Choose several games, people can decide what to play on the day.
+              </p>
+
+              {/* Game Rows */}
+              {formData.flexibleGames.map((game, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Start typing to search..."
+                    value={game.name}
+                    onChange={(e) => handleFlexibleGameSearch(index, e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    autoComplete="off"
+                  />
+
+                  {/* Suggestions Dropdown */}
+                  {gameSuggestions.length > 0 && (
+                    <ul className="absolute mt-12 bg-white border border-gray-200 rounded shadow-md z-10 w-96 max-h-40 overflow-y-auto">
+                      {gameSuggestions.map((suggestion, idx) => (
+                        <li 
+                          key={idx}
+                          className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
+                          onClick={() => addFlexibleGame(index, suggestion)}
+                        >
+                          <div className="font-medium">{suggestion.name}</div>
+                          <div className="text-sm text-gray-600">
+                            Released: {suggestion.yearPublished}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* +/- Buttons */}
+                  <button
+                    onClick={() => removeFlexibleGameRow(index)}
+                    type="button"
+                    className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    &ndash;
+                  </button>
+                  {index === formData.flexibleGames.length - 1 && (
+                    <button
+                      onClick={addFlexibleGameRow}
+                      type="button"
+                      className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      +
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Players Needed*</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.playersNeeded}
+                  onChange={(e) => setFormData({ ...formData, playersNeeded: parseInt(e.target.value) || 1 })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="organizerJoinsFlex"
+                  checked={formData.organizerJoins}
+                  onChange={(e) => setFormData({ ...formData, organizerJoins: e.target.checked })}
+                  className="h-5 w-5 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <label htmlFor="organizerJoinsFlex" className="ml-2 text-sm text-gray-700">
+                  I will join this session when created
+                </label>
+              </div>
+
+              <button
+                onClick={createTable}
+                className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Create Flexible Game Session
+              </button>
+            </div>
+          </div>
+        )}
         {/* Join Table View */}
         {activeTab === 'join' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
@@ -361,7 +537,9 @@ export default function App() {
 
                 {/* Game Info Card */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                  <h3 className="font-bold text-lg">{currentTable.gameName || "Unknown Game"}</h3>
+                  <h3 className="font-bold text-lg">
+                    {currentTable.isFlexible ? "Flexible Game Session" : currentTable.gameName || "Unknown Game"}
+                  </h3>
                   <p className="text-sm text-gray-600">
                     Date: {formatDate(currentTable.date)} at {currentTable.time}
                   </p>
@@ -373,15 +551,15 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* Game Thumbnail + Details */}
-                {currentTable.gameData && (
+                {/* Show game details if it's a single game */}
+                {!currentTable.isFlexible && currentTable.gameData && (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start mb-6">
-                    {/* Thumbnail */}
+                    {/* Game Thumbnail */}
                     <div className="sm:col-span-1 flex justify-center">
                       {currentTable.gameData.thumbnail && (
-                        <img
-                          src={currentTable.gameData.thumbnail}
-                          alt={`${currentTable.gameData.name} thumbnail`}
+                        <img 
+                          src={currentTable.gameData.thumbnail} 
+                          alt={`${currentTable.gameData.name} thumbnail`} 
                           className="max-w-full h-auto rounded shadow"
                         />
                       )}
@@ -391,29 +569,43 @@ export default function App() {
                     <div className="sm:col-span-2">
                       <h4 className="font-medium text-gray-700 mb-2">About {currentTable.gameData.name}</h4>
                       <ul className="space-y-1 text-sm text-gray-600">
-                        <li>Complexity: {getComplexity(currentTable.gameData.complexity)}</li>
-                        <li>Duration: {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)} minutes</li>
+                        <li><strong>Complexity:</strong> {getComplexity(currentTable.gameData.complexity)}</li>
+                        <li><strong>Duration:</strong> {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)} min</li>
                         <li>
-                          <a
-                            href={currentTable.gameData.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
+                          <a href={currentTable.gameData.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                             View on BoardGameGeek
                           </a>
                         </li>
                         <li>
-                          <a
-                            href={currentTable.gameData.youtubeLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-red-600 hover:underline"
-                          >
+                          <a href={currentTable.gameData.youtubeLink} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">
                             How to Play (YouTube)
                           </a>
                         </li>
                       </ul>
+                    </div>
+                  </div>
+                )}
+                {/* Show all flexible games if this is a flexible session */}
+                {currentTable.isFlexible && currentTable.flexibleGames?.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-medium text-gray-700 mb-2">Suggested Games</h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      {currentTable.flexibleGames.map((game, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                          <a href={game.link} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline">
+                            {game.name}
+                          </a>
+                          <span className="text-sm text-gray-600">
+                            Complexity: {parseFloat(game.complexity).toFixed(1)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Complexity Range */}
+                    <div className="text-sm text-gray-600">
+                      Complexity Range: <strong>{getComplexityRange(currentTable.flexibleGames)}</strong>
                     </div>
                   </div>
                 )}
@@ -424,7 +616,7 @@ export default function App() {
                     Participants ({currentTable.participants.length}/{currentTable.playersNeeded})
                   </h4>
 
-                  <div className="flex flex-col space-y-2 mb-6">
+                  <div className="flex flex-col space-y-2 mb-4">
                     {currentTable.participants.map((name, idx) => (
                       <div key={idx} className="flex justify-between items-center bg-blue-50 px-4 py-2 rounded-lg">
                         <span>{name}</span>
