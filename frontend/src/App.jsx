@@ -40,9 +40,6 @@ export default function App() {
         {
           id: null,
           name: name,
-          playingTime: '',
-          complexity: '',
-          link: ''
         }
       ]
     });
@@ -57,9 +54,6 @@ export default function App() {
       flexibleGames: [...formData.flexibleGames, {
         name: '',
         id: '',
-        playingTime: '',
-        complexity: '',
-        link: ''
       }]
     });
   };
@@ -80,9 +74,6 @@ export default function App() {
         {
           id: game.id,
           name: game.name,
-          playingTime: game.playingTime || 'N/A',
-          complexity: game.complexity || 'N/A',
-          link: game.link || '#'
         }
       ],
       gameName: '', // Clear input

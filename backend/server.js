@@ -141,7 +141,7 @@ app.post('/api/table', async (req, res) => {
     try {
       // Fetch full details for each flexible game
       const updatedFlexibleGames = [];
-      let delay = 250;
+      let delay = 100;
 
       for (const game of data.flexibleGames) {
         if (!game.id) continue; // Skip non-BGG games
@@ -158,7 +158,7 @@ app.post('/api/table', async (req, res) => {
           });
 
           const bggGame = result.items.item;
-          const gameName = bggGame.name[0]['$']?.value;
+          const gameName = Array.isArray(bggGame.name) ? bggGame.name[0]['$']?.value : (bggGame.name?.['$']?.value || 'N/A');
 
           updatedFlexibleGames.push({
             id: bggGame.$.id,
@@ -176,7 +176,7 @@ app.post('/api/table', async (req, res) => {
 
           await sleep(delay);          
         } catch (err) {
-          console.warn("Could not fetch full game data from BGG:", err.message);
+          console.log("Could not fetch full game data from BGG:", err.message);
           updatedFlexibleGames.push({
             id: game.id,
             name: game.name,
@@ -210,7 +210,7 @@ app.post('/api/table', async (req, res) => {
           if (err) return res.status(500).json({ error: "Failed to parse BGG data" });
 
           const game = result.items.item;
-          const gameName = game.name[0]['$']?.value;
+          const gameName = Array.isArray(bggGame.name) ? bggGame.name[0]['$']?.value : (bggGame.name?.['$']?.value || 'N/A');
 
           data.gameData = {
             id: game.$.id,
