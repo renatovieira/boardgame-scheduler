@@ -299,7 +299,7 @@ export default function App() {
   const getPlayingTime = (minPlayingTime, maxPlayingTime) => {
     if (!minPlayingTime || !maxPlayingTime) return 'N/A';
 
-    return `${minPlayingTime}-${maxPlayingTime}`;
+    return `${minPlayingTime}-${maxPlayingTime} min`;
   };
 
   const resetUrl = () => {
@@ -684,7 +684,7 @@ export default function App() {
                       <h4 className="font-medium text-gray-700 mb-2">About {currentTable.gameData.name}</h4>
                       <ul className="space-y-1 text-sm text-gray-600">
                         <li><strong>Complexity:</strong> {getComplexity(currentTable.gameData.complexity)}</li>
-                        <li><strong>Duration:</strong> {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)} min</li>
+                        <li><strong>Duration:</strong> {getPlayingTime(currentTable.gameData.minPlayingTime, currentTable.gameData.maxPlayingTime)}</li>
                         <li>
                           <a href={currentTable.gameData.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                             View on BoardGameGeek
@@ -719,7 +719,7 @@ export default function App() {
 
                           {/* Duration */}
                           <div className="text-sm text-gray-600">
-                            Duration: {getPlayingTime(game.minPlayingTime, game.maxPlayingTime)} min
+                            Duration: {getPlayingTime(game.minPlayingTime, game.maxPlayingTime)}
                           </div>
 
                           {/* How to Play on YouTube */}
