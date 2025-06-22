@@ -311,6 +311,30 @@ app.post('/api/table/:id/remove', async (req, res) => {
   }
 });
 
+// Keeps the server awake with a self-ping every minute + random jitter
+function keepAlive() {
+  const intervalInMs = 60_000; // 1 minutes
+  const jitterRange = 5_000;   // ±5 seconds
+
+  setInterval(async () => {
+    try {
+      const url = process.env.KEEPALIVE_URL || 'https://boardgame-scheduler.onrender.com/api/games?q=catan';
+      const jitter = Math.floor(Math.random() * jitterRange * 2) - jitterRange;
+      const actualInterval = intervalInMs + jitter;
+
+      // Use setTimeout instead of changing interval dynamically
+      console.log(`[Keepalive] Pinging ${url} (next ping in ~${Math.floor((actualInterval / 1000) / 60)}m${(actualInterval / 1000) % 60}s)`);
+
+      await axios.get(url);
+      console.log("[Keepalive] Success");
+    } catch (err) {
+      console.error("[Keepalive] Error:", err.message);
+    }
+  }, intervalInMs);
+}
+
+keepAlive();
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
