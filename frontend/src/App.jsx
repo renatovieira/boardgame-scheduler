@@ -220,12 +220,17 @@ export default function App() {
       const newTableLink = `${window.location.origin}/?table=${result.id}`;
       window.history.pushState({}, '', `/?table=${result.id}`);
 
-      const tableRes = await fetch(`https://boardgame-scheduler.onrender.com/api/table/${result.id}`); 
-      const tableData = await tableRes.json();
+      try {
+        const fullTable = await fetchWithRetry(`https://boardgame-scheduler.onrender.com/api/table/${result.id}`); 
 
-      setCurrentTable(tableData);
-      setCurrentTableId(result.id);
-      setActiveTab('join');
+        setCurrentTable(fullTable);
+        setCurrentTableId(result.id);
+        setActiveTab('join');
+      } catch (err) {
+        console.error("Failed to load table:", err.message);
+        alert("Session created, but there was an issue loading it. Try visiting the link again.");
+        window.location.href = getTableLink(result.id); // Fallback to page reload
+      }
     } catch (err) {
       console.error("Failed to create table:", err);
       alert("Could not create the session. Please try again.");
