@@ -247,13 +247,13 @@ app.get('/preview/:id', async (req, res) => {
     if (table.isFlexible && table.flexibleGames?.length > 0) {
       // Flexible session: show list of games
       const gameNames = table.flexibleGames.map(g => g.name).join(", ");
-      title = `${formatDate(table.date)} • ${table.time} • ${table.location}`;
+      title = `${formatDate(table.date)} • ${table.time} • ${table.location} by ${table.participants[0] || "Unknown"}`;
       description = `${gameNames}`;
       imageUrl = table.flexibleGames[0]?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
     } else {
       // Single-game session: unchanged
       const gameName = table.gameData?.name || table.gameName || "Board Game";
-      title = `${gameName} • ${formatDate(table.date)} • ${table.time} • ${table.location}`;
+      title = `${gameName} • ${formatDate(table.date)} • ${table.time} • ${table.location} by ${table.participants[0] || "Unknown"}`;
       description = `Duration: ${getPlayingTime(table.gameData?.minPlayingTime, table.gameData?.maxPlayingTime)} min; Complexity: ${getComplexity(table.gameData?.complexity)}`;
       imageUrl = table.gameData?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
     }
