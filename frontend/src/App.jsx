@@ -440,7 +440,7 @@ export default function App() {
                           <li 
                             key={idx} 
                             className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                            onClick={() => addFlexibleGame(suggestion)}
+                            onClick={() => selectGame(suggestion)}
                           >
                             <div className="font-medium">{suggestion.name}</div>
                             <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
