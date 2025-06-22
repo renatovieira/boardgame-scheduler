@@ -272,7 +272,8 @@ export default function App() {
     if (complexityValue < 2) return 'Light';
     if (complexityValue < 3) return 'Medium';
     if (complexityValue < 4) return 'Medium-Heavy';
-    return 'Heavy';
+    if (complexityValue >= 4) return 'Heavy';
+    return complexityValue;
   };
 
   const getComplexityRange = (games) => {
