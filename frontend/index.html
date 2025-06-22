@@ -2,10 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Board Game Scheduler</title>
-  <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>   
+
+  <!-- Custom Scrollbar Styles -->
+  <style>
+    /* Enable smooth scroll on mobile */
+    .scroll-touch {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+    }
+
+    /* Scrollable dropdown styles */
+    .scrollbar-thin {
+      scrollbar-width: thin; /* Firefox */
+      -ms-overflow-style: none; /* IE 11 */
+      overflow: -moz-scrollbars-none; /* Older Firefox */
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      display: none !important; /* Hide scrollbar visually, still scrollable */
+    }
+
+    /* Optional: Add to prevent zoom on input focus on mobile */
+    input[type="text"], input[type="date"], input[type="time"] {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* Fix for Tailwind's max-h not working on Android Chrome */
+    .max-h-40 {
+      max-height: 160px;
+    }
+
+    @media (min-width: 640px) {
+      .max-h-40 {
+        max-height: 200px;
+      }
+    }
+
+    /* Prevent body from bouncing when modal is open */
+    .modal-open {
+      overflow: hidden;
+      height: 100%;
+    }
+
+    /* Improve tap targets and spacing on mobile */
+    .touch-manipulation {
+      touch-action: manipulation;
+    }
+
+    /* Ensure images scale well */
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Fix for Tailwind's rounded corners + overflow hidden on Safari */
+    .rounded {
+      border-radius: 0.5rem;
+    }
+
+    .rounded-lg {
+      border-radius: 0.75rem;
+    }
+
+    /* Optional: Custom link styles */
+    a {
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>

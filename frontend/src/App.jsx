@@ -424,20 +424,23 @@ export default function App() {
                 {searchingGame && <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded animate-pulse">Searching...</div>}
                 
                 {gameSuggestions.length > 0 && (
-                  <ul className="mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-[160px] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                    {gameSuggestions.map((game, index) => (
-                      <li 
-                        key={index}
-                        className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                        onClick={() => selectGame(game)}
-                      >
-                        <div className="font-medium">{game.name}</div>
-                        <div className="text-sm text-gray-600">
-                          Released: {game.yearPublished}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  <div 
+                    className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
+                    style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+                  >
+                    <ul className="p-0 m-0">
+                      {gameSuggestions.map((suggestion, idx) => (
+                        <li 
+                          key={idx} 
+                          className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
+                          onClick={() => addFlexibleGame(suggestion)}
+                        >
+                          <div className="font-medium">{suggestion.name}</div>
+                          <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
 
@@ -559,22 +562,23 @@ export default function App() {
 
                 {/* Suggestions Dropdown */}
                 {gameSuggestions.length > 0 && (
-                  <ul className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-10 w-full max-h-40 overflow-y-auto">
-                    {gameSuggestions.map((suggestion, idx) => (
-                      <li
-                        key={idx}
-                        className="px-4 py-2 hover:bg-purple-50 cursor-pointer"
-                        onClick={() => {
-                          addFlexibleGame(suggestion);
-                        }}
-                      >
-                        <div className="font-medium">{suggestion.name}</div>
-                        <div className="text-sm text-gray-600">
-                          Released: {suggestion.yearPublished}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  <div 
+                    className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
+                    style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+                  >
+                    <ul className="p-0 m-0">
+                      {gameSuggestions.map((suggestion, idx) => (
+                        <li 
+                          key={idx} 
+                          className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
+                          onClick={() => addFlexibleGame(suggestion)}
+                        >
+                          <div className="font-medium">{suggestion.name}</div>
+                          <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
 
