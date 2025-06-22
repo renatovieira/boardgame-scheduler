@@ -141,7 +141,7 @@ app.post('/api/table', async (req, res) => {
     try {
       // Fetch full details for each flexible game
       const updatedFlexibleGames = [];
-      let delay = 100;
+      let delay = 250;
 
       for (const game of data.flexibleGames) {
         if (!game.id) continue; // Skip non-BGG games
