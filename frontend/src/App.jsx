@@ -417,23 +417,16 @@ export default function App() {
                   {searchingGame && <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded animate-pulse">Searching...</div>}
                   
                   {gameSuggestions.length > 0 && (
-                    <div 
-                      className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
-                      style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-                    >
-                      <ul className="p-0 m-0">
-                        {gameSuggestions.map((suggestion, idx) => (
-                          <li 
-                            key={idx} 
-                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                            onClick={() => selectGame(suggestion)}
-                          >
-                            <div className="font-medium">{suggestion.name}</div>
-                            <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="list-group list-group-flush position-absolute w-100 mt-2 max-h-[160px] overflow-auto z-30">
+                      {gameSuggestions.map((suggestion, idx) => (
+                        <li key={idx} className="list-group-item cursor-pointer"
+                          onClick={() => selectGame(suggestion)}
+                        >
+                          <div className="fw-bold">{suggestion.name}</div>
+                          <small className="text-muted">Released: {suggestion.yearPublished}</small>
+                        </li>
+                      ))}
+                    </ul>                    
                   )}
                 </div>
               </div>
@@ -557,23 +550,16 @@ export default function App() {
 
                   {/* Suggestions Dropdown */}
                   {gameSuggestions.length > 0 && (
-                    <div 
-                      className="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-30 w-full max-h-[160px]"
-                      style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-                    >
-                      <ul className="p-0 m-0">
-                        {gameSuggestions.map((suggestion, idx) => (
-                          <li 
-                            key={idx} 
-                            className="px-4 py-2 hover:bg-purple-50 cursor-pointer border-b last:border-b-0"
-                            onClick={() => addFlexibleGame(suggestion)}
-                          >
-                            <div className="font-medium">{suggestion.name}</div>
-                            <div className="text-sm text-gray-600">Released: {suggestion.yearPublished}</div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="list-group list-group-flush position-absolute w-100 mt-2 max-h-[160px] overflow-auto z-30">
+                      {gameSuggestions.map((suggestion, idx) => (
+                        <li key={idx} className="list-group-item cursor-pointer"
+                          onClick={() => addFlexibleGame(suggestion)}
+                        >
+                          <div className="fw-bold">{suggestion.name}</div>
+                          <small className="text-muted">Released: {suggestion.yearPublished}</small>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               </div>
