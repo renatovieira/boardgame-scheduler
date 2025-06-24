@@ -131,7 +131,9 @@ export default function App() {
         const data = await res.json();
 
         const now = new Date();
-        const filtered = data.filter(t => new Date(t.date) > now);
+        const filtered = data
+          .filter(t => new Date(t.date) > now)
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         setUpcomingSessions(filtered);
       } catch (err) {
@@ -724,34 +726,6 @@ export default function App() {
         {activeTab === 'upcoming' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-4xl mx-auto">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800">All Upcoming Sessions</h2>
-
-            {/* Search & Sort */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <input
-                type="text"
-                placeholder="Search by game or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg flex-grow"
-              />
-              
-              <select
-                value={sortField}
-                onChange={(e) => setSortField(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="date">Sort by Date</option>
-                <option value="gameName">Sort by Game Name</option>
-                <option value="complexity">Sort by Complexity</option>
-              </select>
-
-              <button
-                onClick={() => setSortOrder(-sortOrder)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Toggle Sort Order
-              </button>
-            </div>
 
             {/* Session List */}
             <div className="overflow-x-auto">
