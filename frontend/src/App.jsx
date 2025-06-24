@@ -747,7 +747,12 @@ export default function App() {
                       </td>
                       <td className="py-3 px-4 flex items-center">
                         {session.isFlexible ? (
-                          <span className="font-medium">Flexible Session</span>
+                          <>
+                            {session.flexibleGames[0]?.thumbnail && (
+                              <img src={session.flexibleGames[0]?.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"} alt="Flexible session" className="w-10 h-10 rounded mr-2" />
+                            )}
+                            <span>Flexible: {session.flexibleGames.map(g => g.name).join(", ")}</span>                          
+                          </>
                         ) : (
                           <>
                             {session.gameData?.thumbnail && (
