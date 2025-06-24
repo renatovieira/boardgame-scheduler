@@ -22,8 +22,8 @@ export default function App() {
     playersNeeded: 4,
     organizerJoins: true,
     isFlexible: false,
-    flexibleGames: [
-    ]
+    flexibleGames: [],
+    isPrivate: false
   });
 
   const addCustomGame = (name) => {
@@ -457,6 +457,20 @@ export default function App() {
                 </label>
               </div>
 
+              {/* Privacy Toggle */}
+              <div className="flex items-center mt-4">
+                <input
+                  id="isPrivate"
+                  type="checkbox"
+                  checked={formData.isPrivate}
+                  onChange={(e) => setFormData({ ...formData, isPrivate: e.target.checked })}
+                  className="h-5 w-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <label htmlFor="isPrivate" className="ml-2 text-sm text-gray-700">
+                  This session is private (only people with the link can join)
+                </label>
+              </div>              
+
               <button
                 onClick={createTable}
                 className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
@@ -608,6 +622,20 @@ export default function App() {
                   I will join this session when created
                 </label>
               </div>
+
+              {/* Privacy Toggle */}
+              <div className="flex items-center mt-4">
+                <input
+                  id="isPrivate"
+                  type="checkbox"
+                  checked={formData.isPrivate}
+                  onChange={(e) => setFormData({ ...formData, isPrivate: e.target.checked })}
+                  className="h-5 w-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <label htmlFor="isPrivate" className="ml-2 text-sm text-gray-700">
+                  This session is private (only people with the link can join)
+                </label>
+              </div>              
 
               {/* Create Button */}
               <button

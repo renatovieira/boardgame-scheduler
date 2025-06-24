@@ -25,6 +25,10 @@ const TableSchema = new mongoose.Schema({
   playersNeeded: { type: Number, required: true },
   organizerJoins: { type: Boolean, default: false },
   participants: { type: [String], default: [] },
+  isPrivate: {
+    type: Boolean,
+    default: false
+  },
   gameData: {
     id: String,
     name: String,
