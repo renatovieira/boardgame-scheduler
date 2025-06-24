@@ -13,6 +13,11 @@ export default function App() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToRemove, setParticipantToRemove] = useState(null);
 
+  const [upcomingSessions, setUpcomingSessions] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState('date');
+  const [sortOrder, setSortOrder] = useState(1);
+
   const [formData, setFormData] = useState({
     date: '',
     time: '',
@@ -116,6 +121,28 @@ export default function App() {
     }
   }, []);
 
+  // Load upcoming sessions only when switching to 'upcoming' tab
+  useEffect(() => {
+    if (activeTab !== 'upcoming') return;
+
+    const loadUpcomingSessions = async () => {
+      try {
+        const res = await fetch(`https://boardgame-scheduler.onrender.com/api/tables`); 
+        const data = await res.json();
+
+        const now = new Date();
+        const filtered = data.filter(t => new Date(t.date) > now);
+
+        setUpcomingSessions(filtered);
+      } catch (err) {
+        console.error("Failed to load upcoming sessions:", err);
+        setUpcomingSessions([]);
+      }
+    };
+
+    loadUpcomingSessions();
+  }, [activeTab]);
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const date = new Date(dateString);
@@ -167,6 +194,41 @@ export default function App() {
     });
     setGameSuggestions([]);
   };
+
+  const filteredSessions = upcomingSessions.filter(s => {
+    const gameName = s.isFlexible 
+      ? s.flexibleGames.map(g => g.name).join(', ')
+      : s.gameData?.name || s.gameName;
+
+    return gameName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           s.location.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const sortedSessions = [...filteredSessions].sort((a, b) => {
+    let valA, valB;
+
+    switch (sortField) {
+      case 'date':
+        valA = new Date(a.date);
+        valB = new Date(b.date);
+        break;
+      case 'gameName':
+        valA = (a.isFlexible ? '' : a.gameName || '').toLowerCase();
+        valB = (b.isFlexible ? '' : b.gameName || '').toLowerCase();
+        break;
+      case 'complexity':
+        valA = parseFloat(a.isFlexible ? getComplexityRange(a.flexibleGames) : a.gameData?.complexity || 0);
+        valB = parseFloat(b.isFlexible ? getComplexityRange(b.flexibleGames) : b.gameData?.complexity || 0);
+        break;
+      default:
+        valA = a[sortField];
+        valB = b[sortField];
+    }
+
+    if (valA < valB) return -sortOrder;
+    if (valA > valB) return sortOrder;
+    return 0;
+  });  
 
   // Create new table
   const createTable = async () => {
@@ -342,7 +404,18 @@ export default function App() {
             }}
           >
             Organize Flexible Game Session
-          </button>          
+          </button>
+
+          <button 
+            className={`px-6 py-3 font-medium ${
+              activeTab === 'upcoming' 
+                ? 'border-b-2 border-green-600 text-green-600' 
+                : 'text-gray-600 hover:text-green-600'
+            }`}
+            onClick={() => setActiveTab('upcoming')}
+          >
+            Upcoming Sessions
+          </button>                    
         </div>
 
         {/* Organize Single Game Form */}
@@ -647,6 +720,88 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {activeTab === 'upcoming' && (
+          <div className="bg-white rounded-xl shadow-md p-6 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">All Upcoming Sessions</h2>
+
+            {/* Search & Sort */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <input
+                type="text"
+                placeholder="Search by game or location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg flex-grow"
+              />
+              
+              <select
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="date">Sort by Date</option>
+                <option value="gameName">Sort by Game Name</option>
+                <option value="complexity">Sort by Complexity</option>
+              </select>
+
+              <button
+                onClick={() => setSortOrder(-sortOrder)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Toggle Sort Order
+              </button>
+            </div>
+
+            {/* Session List */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th className="py-2 px-4 text-left">Date</th>
+                    <th className="py-2 px-4 text-left">Game</th>
+                    <th className="py-2 px-4 text-left">Location</th>
+                    <th className="py-2 px-4 text-center">Players</th>
+                    <th className="py-2 px-4 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-600 text-sm">
+                  {filteredSessions.map((session, idx) => (
+                    <tr key={idx} className="border-b border-gray-200 hover:bg-gray-100">
+                      <td className="py-3 px-4">
+                        {formatDateWithOrdinal(session.date)} at {session.time}
+                      </td>
+                      <td className="py-3 px-4 flex items-center">
+                        {session.isFlexible ? (
+                          <span className="font-medium">Flexible Session</span>
+                        ) : (
+                          <>
+                            {session.gameData?.thumbnail && (
+                              <img src={session.gameData.thumbnail} alt={session.gameData.name} className="w-10 h-10 rounded mr-2" />
+                            )}
+                            <span>{session.gameData?.name || session.gameName}</span>
+                          </>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">{session.location}</td>
+                      <td className="py-3 px-4 text-center">
+                        {session.participants.length}/{session.playersNeeded}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {session.participants.length >= session.playersNeeded ? (
+                          <span className="text-red-500 font-bold">Full</span>
+                        ) : (
+                          <span className="text-green-600">Open</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Join Table View */}
         {activeTab === 'join' && (
           <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">

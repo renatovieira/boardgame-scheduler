@@ -337,6 +337,16 @@ app.post('/api/table/:id/remove', async (req, res) => {
   }
 });
 
+app.get('/api/tables', async (req, res) => {
+  try {
+    const tables = await Table.find({});
+    res.json(tables);
+  } catch (err) {
+    console.error("Failed to fetch tables:", err.message);
+    res.status(500).json({ error: "Could not load sessions" });
+  }
+});
+
 // Keeps the server awake with a self-ping every minute + random jitter
 function keepAlive() {
   const intervalInMs = 60_000; // 1 minutes
