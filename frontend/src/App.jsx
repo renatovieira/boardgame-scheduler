@@ -318,6 +318,10 @@ export default function App() {
     return `https://boardgame-scheduler.onrender.com/preview/${tableId}`;
   };
 
+  const getDirectTableLink = (tableId) => {
+    return `https://boardgame-scheduler.netlify.app/?table=${tableId}`;
+  };  
+
   const getComplexityCategory = (complexityValue) => {
     if (complexityValue < 2) return 'Light';
     if (complexityValue < 3) return 'Medium';
@@ -732,6 +736,7 @@ export default function App() {
               <table className="min-w-full table-auto">
                 <thead>
                   <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th className="py-2 px-4 text-left">Link</th>
                     <th className="py-2 px-4 text-left">Date</th>
                     <th className="py-2 px-4 text-left">Game</th>
                     <th className="py-2 px-4 text-left">Location</th>
@@ -742,6 +747,16 @@ export default function App() {
                 <tbody className="text-gray-600 text-sm">
                   {filteredSessions.map((session, idx) => (
                     <tr key={idx} className="border-b border-gray-200 hover:bg-gray-100">
+                      <td className="py-3 px-4 text-center">
+                        <a 
+                          href={getDirectTableLink(session._id)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          View Session
+                        </a>
+                      </td>                      
                       <td className="py-3 px-4">
                         {formatDate(session.date)} at {session.time}
                       </td>
