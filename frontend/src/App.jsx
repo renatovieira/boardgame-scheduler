@@ -769,7 +769,7 @@ export default function App() {
                   {filteredSessions.map((session, idx) => (
                     <tr key={idx} className="border-b border-gray-200 hover:bg-gray-100">
                       <td className="py-3 px-4">
-                        {formatDateWithOrdinal(session.date)} at {session.time}
+                        {formatDate(session.date)} at {session.time}
                       </td>
                       <td className="py-3 px-4 flex items-center">
                         {session.isFlexible ? (
